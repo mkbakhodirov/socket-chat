@@ -56,6 +56,7 @@ public class MyFrame3 extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
+        headerPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 10, 14));
         headerPanel.setLayout(new java.awt.GridBagLayout());
 
         jLabel1.setText("BROADCAST IP ADDRESS");
@@ -124,6 +125,7 @@ public class MyFrame3 extends javax.swing.JFrame {
         addressPanel.setPreferredSize(new java.awt.Dimension(184, 10));
         addressPanel.setLayout(new java.awt.BorderLayout());
 
+        jPanel3.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new java.awt.Color(0, 0, 0)));
         jPanel3.setLayout(new java.awt.BorderLayout());
 
         jLabel5.setText("ADDRESSES");
@@ -147,6 +149,7 @@ public class MyFrame3 extends javax.swing.JFrame {
 
         messagePanel.setLayout(new java.awt.BorderLayout());
 
+        jPanel4.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new java.awt.Color(0, 0, 0)));
         jPanel4.setLayout(new java.awt.BorderLayout());
 
         jLabel8.setText("MESSAGES");
