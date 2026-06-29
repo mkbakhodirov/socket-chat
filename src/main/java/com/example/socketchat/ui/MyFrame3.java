@@ -38,6 +38,7 @@ public class MyFrame3 extends javax.swing.JFrame {
         startCheck = new javax.swing.JCheckBox();
         statusLabel = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
+        centerPanel = new javax.swing.JPanel();
         addressPanel = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
@@ -113,6 +114,11 @@ public class MyFrame3 extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
         headerPanel.add(jLabel7, gridBagConstraints);
 
+        getContentPane().add(headerPanel, java.awt.BorderLayout.NORTH);
+
+        centerPanel.setLayout(new java.awt.BorderLayout());
+
+        addressPanel.setPreferredSize(new java.awt.Dimension(184, 10));
         addressPanel.setLayout(new java.awt.BorderLayout());
 
         jPanel3.setLayout(new java.awt.BorderLayout());
@@ -134,6 +140,8 @@ public class MyFrame3 extends javax.swing.JFrame {
 
         addressPanel.add(jScrollPane3, java.awt.BorderLayout.CENTER);
 
+        centerPanel.add(addressPanel, java.awt.BorderLayout.WEST);
+
         messagePanel.setLayout(new java.awt.BorderLayout());
 
         jPanel4.setLayout(new java.awt.BorderLayout());
@@ -147,36 +155,9 @@ public class MyFrame3 extends javax.swing.JFrame {
         messagePanel.add(jPanel4, java.awt.BorderLayout.NORTH);
         messagePanel.add(messages, java.awt.BorderLayout.CENTER);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addComponent(addressPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(messagePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(headerPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 1021, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(21, 21, 21))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(headerPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addComponent(addressPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addComponent(messagePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addContainerGap(249, Short.MAX_VALUE))
-        );
+        centerPanel.add(messagePanel, java.awt.BorderLayout.CENTER);
+
+        getContentPane().add(centerPanel, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -210,6 +191,7 @@ public class MyFrame3 extends javax.swing.JFrame {
     private javax.swing.JTextField addressField;
     private javax.swing.JList<String> addressList;
     private javax.swing.JPanel addressPanel;
+    private javax.swing.JPanel centerPanel;
     private javax.swing.JPanel headerPanel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
