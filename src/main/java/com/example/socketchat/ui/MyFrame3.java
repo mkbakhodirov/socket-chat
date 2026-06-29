@@ -50,6 +50,9 @@ public class MyFrame3 extends javax.swing.JFrame {
         jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         messages = new javax.swing.JScrollPane();
+        messageInputPanel = new javax.swing.JPanel();
+        inputField = new javax.swing.JTextField();
+        sendButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -157,6 +160,14 @@ public class MyFrame3 extends javax.swing.JFrame {
 
         centerPanel.add(messagePanel, java.awt.BorderLayout.CENTER);
 
+        messageInputPanel.setLayout(new java.awt.BorderLayout());
+        messageInputPanel.add(inputField, java.awt.BorderLayout.CENTER);
+
+        sendButton.setText("Send");
+        messageInputPanel.add(sendButton, java.awt.BorderLayout.EAST);
+
+        centerPanel.add(messageInputPanel, java.awt.BorderLayout.SOUTH);
+
         getContentPane().add(centerPanel, java.awt.BorderLayout.CENTER);
 
         pack();
@@ -193,6 +204,7 @@ public class MyFrame3 extends javax.swing.JFrame {
     private javax.swing.JPanel addressPanel;
     private javax.swing.JPanel centerPanel;
     private javax.swing.JPanel headerPanel;
+    private javax.swing.JTextField inputField;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -204,9 +216,11 @@ public class MyFrame3 extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JPanel messageInputPanel;
     private javax.swing.JPanel messagePanel;
     private javax.swing.JScrollPane messages;
     private javax.swing.JTextField portField;
+    private javax.swing.JButton sendButton;
     private javax.swing.JCheckBox startCheck;
     private javax.swing.JLabel statusLabel;
     // End of variables declaration//GEN-END:variables
