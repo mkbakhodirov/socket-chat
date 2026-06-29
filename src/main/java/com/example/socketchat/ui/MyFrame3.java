@@ -30,93 +30,112 @@ public class MyFrame3 extends javax.swing.JFrame {
         java.awt.GridBagConstraints gridBagConstraints;
 
         headerPanel = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
+        titleLabel = new javax.swing.JLabel();
+        controlsPanel = new javax.swing.JPanel();
+        addressLabel = new javax.swing.JLabel();
+        portLabel = new javax.swing.JLabel();
+        startLabel = new javax.swing.JLabel();
         addressField = new javax.swing.JTextField();
         portField = new javax.swing.JTextField();
         startCheck = new javax.swing.JCheckBox();
+        spacerLabel = new javax.swing.JLabel();
         statusLabel = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
         centerPanel = new javax.swing.JPanel();
         addressPanel = new javax.swing.JPanel();
-        jPanel3 = new javax.swing.JPanel();
-        jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
-        jScrollPane3 = new javax.swing.JScrollPane();
+        addressHeaderPanel = new javax.swing.JPanel();
+        addressesLabel = new javax.swing.JLabel();
+        addAddressLabel = new javax.swing.JLabel();
+        addressScrollPane = new javax.swing.JScrollPane();
         addressList = new javax.swing.JList<>();
         messagePanel = new javax.swing.JPanel();
-        jPanel4 = new javax.swing.JPanel();
-        jLabel8 = new javax.swing.JLabel();
-        jLabel9 = new javax.swing.JLabel();
-        messages = new javax.swing.JScrollPane();
+        messageHeaderPanel = new javax.swing.JPanel();
+        messagesLabel = new javax.swing.JLabel();
+        clearLabel = new javax.swing.JLabel();
+        messageScrollPane = new javax.swing.JScrollPane();
+        messages = new javax.swing.JTextArea();
         messageInputPanel = new javax.swing.JPanel();
         inputField = new javax.swing.JTextField();
         sendButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("UDP Broadcast Chat");
+        setMinimumSize(new java.awt.Dimension(920, 560));
+        setPreferredSize(new java.awt.Dimension(1200, 760));
 
-        headerPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 10, 14));
-        headerPanel.setLayout(new java.awt.GridBagLayout());
+        headerPanel.setLayout(new java.awt.BorderLayout());
 
-        jLabel1.setText("BROADCAST IP ADDRESS");
+        titleLabel.setText("(o) UDP BROADCAST");
+        titleLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 7, 14));
+        headerPanel.add(titleLabel, java.awt.BorderLayout.NORTH);
+
+        controlsPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 10, 14));
+        controlsPanel.setLayout(new java.awt.GridBagLayout());
+
+        addressLabel.setText("BROADCAST IP ADDRESS");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
-        headerPanel.add(jLabel1, gridBagConstraints);
+        controlsPanel.add(addressLabel, gridBagConstraints);
 
-        jLabel2.setText("UDP PORT");
+        portLabel.setText("UDP PORT");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
-        headerPanel.add(jLabel2, gridBagConstraints);
+        controlsPanel.add(portLabel, gridBagConstraints);
 
-        jLabel3.setText("START");
+        startLabel.setText("START");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
-        headerPanel.add(jLabel3, gridBagConstraints);
+        controlsPanel.add(startLabel, gridBagConstraints);
+
+        addressField.setPreferredSize(new java.awt.Dimension(150, 26));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
-        headerPanel.add(addressField, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 14);
+        controlsPanel.add(addressField, gridBagConstraints);
+
+        portField.setText("9000");
+        portField.setPreferredSize(new java.awt.Dimension(82, 26));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
-        headerPanel.add(portField, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 14);
+        controlsPanel.add(portField, gridBagConstraints);
+
+        startCheck.setSelected(true);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
-        headerPanel.add(startCheck, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 14);
+        controlsPanel.add(startCheck, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.weightx = 1.0;
+        controlsPanel.add(spacerLabel, gridBagConstraints);
 
+        statusLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         statusLabel.setText("* LISTENING");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
-        headerPanel.add(statusLabel, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
-        headerPanel.add(jLabel7, gridBagConstraints);
+        controlsPanel.add(statusLabel, gridBagConstraints);
+
+        headerPanel.add(controlsPanel, java.awt.BorderLayout.CENTER);
 
         getContentPane().add(headerPanel, java.awt.BorderLayout.NORTH);
 
@@ -125,53 +144,68 @@ public class MyFrame3 extends javax.swing.JFrame {
         addressPanel.setPreferredSize(new java.awt.Dimension(184, 10));
         addressPanel.setLayout(new java.awt.BorderLayout());
 
-        jPanel3.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new java.awt.Color(0, 0, 0)));
-        jPanel3.setLayout(new java.awt.BorderLayout());
+        addressHeaderPanel.setLayout(new java.awt.BorderLayout());
 
-        jLabel5.setText("ADDRESSES");
-        jPanel3.add(jLabel5, java.awt.BorderLayout.WEST);
+        addressesLabel.setText("ADDRESSES");
+        addressesLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        addressHeaderPanel.add(addressesLabel, java.awt.BorderLayout.WEST);
 
-        jLabel6.setText("+");
-        jPanel3.add(jLabel6, java.awt.BorderLayout.EAST);
+        addAddressLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        addAddressLabel.setText("+");
+        addAddressLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        addressHeaderPanel.add(addAddressLabel, java.awt.BorderLayout.EAST);
 
-        addressPanel.add(jPanel3, java.awt.BorderLayout.NORTH);
+        addressPanel.add(addressHeaderPanel, java.awt.BorderLayout.NORTH);
 
         addressList.setModel(new javax.swing.AbstractListModel<String>() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });
-        jScrollPane3.setViewportView(addressList);
+        addressList.setFixedCellHeight(26);
+        addressScrollPane.setViewportView(addressList);
 
-        addressPanel.add(jScrollPane3, java.awt.BorderLayout.CENTER);
+        addressPanel.add(addressScrollPane, java.awt.BorderLayout.CENTER);
 
         centerPanel.add(addressPanel, java.awt.BorderLayout.WEST);
 
         messagePanel.setLayout(new java.awt.BorderLayout());
 
-        jPanel4.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new java.awt.Color(0, 0, 0)));
-        jPanel4.setLayout(new java.awt.BorderLayout());
+        messageHeaderPanel.setLayout(new java.awt.BorderLayout());
 
-        jLabel8.setText("MESSAGES");
-        jPanel4.add(jLabel8, java.awt.BorderLayout.WEST);
+        messagesLabel.setText("MESSAGES");
+        messagesLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        messageHeaderPanel.add(messagesLabel, java.awt.BorderLayout.WEST);
 
-        jLabel9.setText("CLEAR");
-        jPanel4.add(jLabel9, java.awt.BorderLayout.EAST);
+        clearLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        clearLabel.setText("CLEAR");
+        clearLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        messageHeaderPanel.add(clearLabel, java.awt.BorderLayout.EAST);
 
-        messagePanel.add(jPanel4, java.awt.BorderLayout.NORTH);
-        messagePanel.add(messages, java.awt.BorderLayout.CENTER);
+        messagePanel.add(messageHeaderPanel, java.awt.BorderLayout.NORTH);
+
+        messages.setEditable(false);
+        messages.setColumns(20);
+        messages.setLineWrap(true);
+        messages.setRows(5);
+        messages.setWrapStyleWord(true);
+        messages.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        messageScrollPane.setViewportView(messages);
+
+        messagePanel.add(messageScrollPane, java.awt.BorderLayout.CENTER);
 
         centerPanel.add(messagePanel, java.awt.BorderLayout.CENTER);
 
-        messageInputPanel.setLayout(new java.awt.BorderLayout());
+        getContentPane().add(centerPanel, java.awt.BorderLayout.CENTER);
+
+        messageInputPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        messageInputPanel.setLayout(new java.awt.BorderLayout(8, 0));
         messageInputPanel.add(inputField, java.awt.BorderLayout.CENTER);
 
         sendButton.setText("Send");
         messageInputPanel.add(sendButton, java.awt.BorderLayout.EAST);
 
-        centerPanel.add(messageInputPanel, java.awt.BorderLayout.SOUTH);
-
-        getContentPane().add(centerPanel, java.awt.BorderLayout.CENTER);
+        getContentPane().add(messageInputPanel, java.awt.BorderLayout.SOUTH);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -202,29 +236,32 @@ public class MyFrame3 extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel addAddressLabel;
     private javax.swing.JTextField addressField;
+    private javax.swing.JPanel addressHeaderPanel;
+    private javax.swing.JLabel addressLabel;
     private javax.swing.JList<String> addressList;
     private javax.swing.JPanel addressPanel;
+    private javax.swing.JScrollPane addressScrollPane;
+    private javax.swing.JLabel addressesLabel;
     private javax.swing.JPanel centerPanel;
+    private javax.swing.JLabel clearLabel;
+    private javax.swing.JPanel controlsPanel;
     private javax.swing.JPanel headerPanel;
     private javax.swing.JTextField inputField;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel4;
-    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JPanel messageHeaderPanel;
     private javax.swing.JPanel messageInputPanel;
     private javax.swing.JPanel messagePanel;
-    private javax.swing.JScrollPane messages;
+    private javax.swing.JScrollPane messageScrollPane;
+    private javax.swing.JTextArea messages;
+    private javax.swing.JLabel messagesLabel;
     private javax.swing.JTextField portField;
+    private javax.swing.JLabel portLabel;
     private javax.swing.JButton sendButton;
+    private javax.swing.JLabel spacerLabel;
     private javax.swing.JCheckBox startCheck;
+    private javax.swing.JLabel startLabel;
     private javax.swing.JLabel statusLabel;
+    private javax.swing.JLabel titleLabel;
     // End of variables declaration//GEN-END:variables
 }

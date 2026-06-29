@@ -56,7 +56,7 @@ public final class ChatFrame extends JFrame {
 
     private void configureFrame() {
         setTitle("UDP Broadcast Chat");
-        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(920, 560));
         setSize(1200, 760);
         setLocationRelativeTo(null);
