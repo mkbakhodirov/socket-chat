@@ -13,6 +13,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -51,7 +52,7 @@ public final class ChatFrame extends JFrame {
     public void initialize() {
         bindEvents();
         loadAddresses();
-        toggleListening();
+        startListening();
     }
 
     private void configureFrame() {
@@ -173,17 +174,16 @@ public final class ChatFrame extends JFrame {
 
         JButton sendButton = new JButton("Send");
         styleButton(sendButton);
-        sendButton.addActionListener(event -> sendCurrentMessage());
+        sendButton.addActionListener(event -> sendMessage());
         composer.add(sendButton, BorderLayout.EAST);
     }
 
     private void bindEvents() {
-        udpService.addListener(this::appendMessage);
         inputField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent event) {
                 if (event.getKeyCode() == KeyEvent.VK_ENTER) {
-                    sendCurrentMessage();
+                    sendMessage();
                 }
             }
         });
@@ -204,7 +204,7 @@ public final class ChatFrame extends JFrame {
         }
     }
 
-    private void toggleListening() {
+    private void startListening() {
         if (!startCheck.isSelected()) {
             udpService.stop();
             setStatus(false);
@@ -221,13 +221,14 @@ public final class ChatFrame extends JFrame {
         }
     }
 
-    private void sendCurrentMessage() {
+    private void sendMessage() {
         String text = inputField.getText().trim();
         if (text.isEmpty()) {
             return;
         }
+
         try {
-            udpService.send(addressField.getText().trim(), Integer.parseInt(portField.getText().trim()), text);
+            appendMessage(new ChatMessage(LocalTime.now(), "->", addressField.getText().trim() + ":" + Integer.parseInt(portField.getText().trim()), text));
             inputField.setText("");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Could not send UDP message", JOptionPane.ERROR_MESSAGE);

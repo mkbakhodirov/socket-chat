@@ -257,7 +257,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel messagesLabel;
     public javax.swing.JTextField portField;
     private javax.swing.JLabel portLabel;
-    private javax.swing.JButton sendButton;
+    public javax.swing.JButton sendButton;
     private javax.swing.JLabel spacerLabel;
     public javax.swing.JCheckBox startCheck;
     private javax.swing.JLabel startLabel;
