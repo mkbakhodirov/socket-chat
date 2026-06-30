@@ -237,10 +237,10 @@ public class MainFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel addAddressLabel;
-    private javax.swing.JTextField addressField;
+    public javax.swing.JTextField addressField;
     private javax.swing.JPanel addressHeaderPanel;
     private javax.swing.JLabel addressLabel;
-    private javax.swing.JList<String> addressList;
+    public javax.swing.JList<String> addressList;
     private javax.swing.JPanel addressPanel;
     private javax.swing.JScrollPane addressScrollPane;
     private javax.swing.JLabel addressesLabel;
@@ -248,20 +248,20 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel clearLabel;
     private javax.swing.JPanel controlsPanel;
     private javax.swing.JPanel headerPanel;
-    private javax.swing.JTextField inputField;
+    public javax.swing.JTextField inputField;
     private javax.swing.JPanel messageHeaderPanel;
     private javax.swing.JPanel messageInputPanel;
     private javax.swing.JPanel messagePanel;
     private javax.swing.JScrollPane messageScrollPane;
-    private javax.swing.JTextArea messages;
+    public javax.swing.JTextArea messages;
     private javax.swing.JLabel messagesLabel;
-    private javax.swing.JTextField portField;
+    public javax.swing.JTextField portField;
     private javax.swing.JLabel portLabel;
     private javax.swing.JButton sendButton;
     private javax.swing.JLabel spacerLabel;
-    private javax.swing.JCheckBox startCheck;
+    public javax.swing.JCheckBox startCheck;
     private javax.swing.JLabel startLabel;
-    private javax.swing.JLabel statusLabel;
+    public javax.swing.JLabel statusLabel;
     private javax.swing.JLabel titleLabel;
     // End of variables declaration//GEN-END:variables
 }
