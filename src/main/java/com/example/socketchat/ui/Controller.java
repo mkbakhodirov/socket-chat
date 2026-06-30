@@ -46,8 +46,8 @@ public class Controller {
 
     private void loadAddresses() {
         List<BroadcastAddress> addresses = addressProvider.findBroadcastAddresses();
-        List<String> hostAddresses = addresses.stream().map(BroadcastAddress::hostAddress).toList();
-        frame.addressList.setListData(hostAddresses.toArray(String[]::new));
+        String[] hostAddresses = addresses.stream().map(BroadcastAddress::hostAddress).toArray(String[]::new);
+        frame.addressList.setListData(hostAddresses);
         if (!addresses.isEmpty()) {
             frame.addressList.setSelectedIndex(0);
             frame.addressField.setText(addresses.getFirst().hostAddress());
