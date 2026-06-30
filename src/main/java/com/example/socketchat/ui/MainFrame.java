@@ -8,14 +8,14 @@ package com.example.socketchat.ui;
  *
  * @author User
  */
-public class MyFrame3 extends javax.swing.JFrame {
+public class MainFrame extends javax.swing.JFrame {
     
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(MyFrame3.class.getName());
+    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(MainFrame.class.getName());
 
     /**
-     * Creates new form MyFrame3
+     * Creates new form MainFrame
      */
-    public MyFrame3() {
+    public MainFrame() {
         initComponents();
     }
 
@@ -60,7 +60,6 @@ public class MyFrame3 extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("UDP Broadcast Chat");
         setMinimumSize(new java.awt.Dimension(920, 560));
-        setPreferredSize(new java.awt.Dimension(1200, 760));
 
         headerPanel.setLayout(new java.awt.BorderLayout());
 
@@ -95,6 +94,7 @@ public class MyFrame3 extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
         controlsPanel.add(startLabel, gridBagConstraints);
 
+        addressField.setText("255.255.255.255");
         addressField.setPreferredSize(new java.awt.Dimension(150, 26));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -158,7 +158,7 @@ public class MyFrame3 extends javax.swing.JFrame {
         addressPanel.add(addressHeaderPanel, java.awt.BorderLayout.NORTH);
 
         addressList.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            String[] strings = { "255.255.255.255" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });
@@ -232,7 +232,7 @@ public class MyFrame3 extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new MyFrame3().setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> new MainFrame().setVisible(true));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
