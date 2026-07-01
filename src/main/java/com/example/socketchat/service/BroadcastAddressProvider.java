@@ -24,8 +24,11 @@ public final class BroadcastAddressProvider {
                 }
 
                 for (InterfaceAddress interfaceAddress : networkInterface.getInterfaceAddresses()) {
-                    if (interfaceAddress.getBroadcast() != null) {
-                        addresses.add(new BroadcastAddress(interfaceAddress.getBroadcast().getHostAddress()));
+                    if (interfaceAddress.getAddress() != null && interfaceAddress.getBroadcast() != null) {
+                        addresses.add(new BroadcastAddress(
+                                interfaceAddress.getBroadcast().getHostAddress(),
+                                interfaceAddress.getAddress().getHostAddress()
+                        ));
                     }
                 }
             }
@@ -34,7 +37,7 @@ public final class BroadcastAddressProvider {
         }
 
         if (addresses.isEmpty()) {
-            addresses.add(new BroadcastAddress("255.255.255.255"));
+            addresses.add(new BroadcastAddress("255.255.255.255", "127.0.0.1"));
         }
 
         return addresses.stream()

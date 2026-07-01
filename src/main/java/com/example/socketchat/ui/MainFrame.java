@@ -158,7 +158,7 @@ public class MainFrame extends javax.swing.JFrame {
         addressPanel.add(addressHeaderPanel, java.awt.BorderLayout.NORTH);
 
         addressList.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "255.255.255.255" };
+            String[] strings = { "127.0.0.1" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });

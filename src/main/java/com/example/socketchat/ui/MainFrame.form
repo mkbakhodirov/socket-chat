@@ -248,7 +248,7 @@
                   <Properties>
                     <Property name="model" type="javax.swing.ListModel" editor="org.netbeans.modules.form.editors2.ListModelEditor">
                       <StringArray count="1">
-                        <StringItem index="0" value="255.255.255.255"/>
+                        <StringItem index="0" value="127.0.0.1"/>
                       </StringArray>
                     </Property>
                     <Property name="fixedCellHeight" type="int" value="26"/>
