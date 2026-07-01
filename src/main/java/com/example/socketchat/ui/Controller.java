@@ -122,9 +122,13 @@ public class Controller {
         if (text.isEmpty()) {
             return;
         }
-
+        User user = (User) frame.addressList.getSelectedValue();
+        if (user == null) {
+            return;
+        }
         try {
-            udpService.send(new ChatMessage(LocalTime.now(), "->", frame.addressField.getText().trim() + ":" + Integer.parseInt(frame.portField.getText().trim()), text));
+            InetSocketAddress isa = new InetSocketAddress(user.getAddress(), Integer.parseInt(frame.portField.getText().trim()));
+            udpService.send(text, isa);
             frame.inputField.setText("");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(frame, ex.getMessage(), "Could not send UDP message", JOptionPane.ERROR_MESSAGE);
