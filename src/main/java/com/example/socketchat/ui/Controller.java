@@ -1,10 +1,10 @@
 package com.example.socketchat.ui;
 
-import com.example.socketchat.model.BroadcastAddress;
+import com.example.socketchat.dto.Message;
+import com.example.socketchat.model.User;
 import com.example.socketchat.model.ChatMessage;
-import com.example.socketchat.service.BroadcastAddressProvider;
+import com.example.socketchat.model.UserModel;
 import com.example.socketchat.service.UdpBroadcastService;
-import com.google.inject.Inject;
 
 import javax.swing.*;
 import java.awt.event.KeyAdapter;
@@ -12,18 +12,22 @@ import java.awt.event.KeyEvent;
 import java.net.InetSocketAddress;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.util.Enumeration;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class Controller {
-
-    @Inject
-    private BroadcastAddressProvider addressProvider;
 
     UdpBroadcastService udpService;
 
     private final MainFrame frame = new MainFrame();
     private final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
+
+    private final Object lock = new Object();
+
+    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public void run() {
         loadAddresses();
@@ -53,13 +57,28 @@ public class Controller {
     }
 
     private void loadAddresses() {
-        List<BroadcastAddress> addresses = addressProvider.findBroadcastAddresses();
-        String[] localAddresses = addresses.stream().map(BroadcastAddress::localAddress).toArray(String[]::new);
-        frame.addressList.setListData(localAddresses);
-        if (!addresses.isEmpty()) {
-            frame.addressList.setSelectedIndex(0);
-            frame.addressField.setText(addresses.getFirst().hostAddress());
-        }
+
+        scheduler.scheduleAtFixedRate(() -> {
+            // Безопасно переносим выполнение в поток обработки событий Swing (EDT)
+            SwingUtilities.invokeLater(() -> {
+                LocalTime now = LocalTime.now();
+                LocalTime cutoffTime = now.minusMinutes(1); // Время отсечки (1 минута назад)
+
+                UserModel model = (UserModel) frame.addressList.getModel();
+
+                // Итерируемся с конца списка к началу
+                for (int i = model.getSize() - 1; i >= 0; i--) {
+                    User user = model.getElementAt(i);
+
+                    // ПРАВИЛЬНОЕ УСЛОВИЕ:
+                    // Если время пользователя МЕНЬШЕ (раньше), чем текущее время минус 1 минута,
+                    // значит, пользователь окончательно устарел, и мы его удаляем.
+                    if (user.getTime().isBefore(cutoffTime)) {
+                        model.remove(i);
+                    }
+                }
+            });
+        }, 45, 45, TimeUnit.SECONDS);
     }
 
     private void startListening() {
@@ -112,13 +131,34 @@ public class Controller {
         }
     }
 
-    private void appendMessage(ChatMessage message) {
-        frame.messages.append("%s  %s  %s  %s%n".formatted(
-                timeFormat.format(message.time()),
-                message.direction(),
-                message.sender(),
-                message.text()
-        ));
-        frame.messages.setCaretPosition(frame.messages.getDocument().getLength());
+    private void appendMessage(Message message) {
+        switch (message.getType()) {
+            case UdpBroadcastService.HELLO:
+                User user = new User(LocalTime.now(), message.getAddress());
+                synchronized (lock) {
+                    UserModel um = (UserModel) frame.addressList.getModel();
+                    Enumeration<User> en = um.elements();
+                    while (en.hasMoreElements()) {
+                        User u = en.nextElement();
+                        if (u.getAddress().equals(user.getAddress())) {
+                            u.setTime(user.getTime());
+                            return;
+                        }
+                    }
+                    um.addElement(user);
+                }
+                break;
+
+            case UdpBroadcastService.PLAIN_MESSAGE:
+                ChatMessage cm = new ChatMessage(LocalTime.now(), "<-", message.getAddress(), new String(message.getPayload()));
+                frame.messages.append("%s  %s  %s  %s%n".formatted(
+                        timeFormat.format(cm.time()),
+                        cm.direction(),
+                        cm.sender(),
+                        cm.text()
+                ));
+                frame.messages.setCaretPosition(frame.messages.getDocument().getLength());
+                break;
+        }
     }
 }

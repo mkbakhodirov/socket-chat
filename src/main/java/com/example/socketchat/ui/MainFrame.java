@@ -46,7 +46,7 @@ public class MainFrame extends javax.swing.JFrame {
         addressesLabel = new javax.swing.JLabel();
         addAddressLabel = new javax.swing.JLabel();
         addressScrollPane = new javax.swing.JScrollPane();
-        addressList = new javax.swing.JList<>();
+        addressList = new javax.swing.JList();
         messagePanel = new javax.swing.JPanel();
         messageHeaderPanel = new javax.swing.JPanel();
         messagesLabel = new javax.swing.JLabel();
@@ -157,11 +157,8 @@ public class MainFrame extends javax.swing.JFrame {
 
         addressPanel.add(addressHeaderPanel, java.awt.BorderLayout.NORTH);
 
-        addressList.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "127.0.0.1" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
-        });
+        addressList.setModel(new com.example.socketchat.model.UserModel());
+        addressList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         addressList.setFixedCellHeight(26);
         addressScrollPane.setViewportView(addressList);
 
@@ -240,7 +237,7 @@ public class MainFrame extends javax.swing.JFrame {
     public javax.swing.JTextField addressField;
     private javax.swing.JPanel addressHeaderPanel;
     private javax.swing.JLabel addressLabel;
-    public javax.swing.JList<String> addressList;
+    public javax.swing.JList addressList;
     private javax.swing.JPanel addressPanel;
     private javax.swing.JScrollPane addressScrollPane;
     private javax.swing.JLabel addressesLabel;

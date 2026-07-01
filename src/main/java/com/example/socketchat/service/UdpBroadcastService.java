@@ -6,7 +6,6 @@ import com.example.socketchat.model.ChatMessage;
 import javax.swing.*;
 import java.io.IOException;
 import java.net.*;
-import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -17,17 +16,18 @@ import java.util.function.Consumer;
 public final class UdpBroadcastService extends SwingWorker<Void, Object> {
 
     private SocketAddress broadcastAddr;
-    private Consumer<ChatMessage> listener;
+    private Consumer<Message> listener;
     private Consumer<Throwable> error;
     private DatagramSocket socket;
     private volatile boolean running;
 
-    final byte HELLO = 0x00;
-    final byte PLAIN_MESSAGE = 0x01;
+    public static final byte HELLO = 0x00;
+    public static final byte PLAIN_MESSAGE = 0x01;
+    public static final byte ENCRYPTED_MESSAGE = 0x02;
 
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    public UdpBroadcastService(final SocketAddress broadcastAddr, final Consumer<ChatMessage> listener, final Consumer<Throwable> error) {
+    public UdpBroadcastService(final SocketAddress broadcastAddr, final Consumer<Message> listener, final Consumer<Throwable> error) {
         this.broadcastAddr = broadcastAddr;
         this.listener = listener;
         this.error = error;
@@ -45,7 +45,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
                 running = false;
                 error.accept(ex);
             }
-        }, 0, 30, TimeUnit.SECONDS);
+        }, 3, 30, TimeUnit.SECONDS);
     }
 
     @Override
@@ -66,7 +66,14 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
                 System.arraycopy(dp.getData(), ofs, data, 0, len);
 
                 byte type = data[0];
-                publish(new Message(addr, type, data));
+                int size = 0;
+                byte[] payload = new byte[size];
+                if (data.length > 1) {
+                    size = data[1];
+                    payload = new byte[size];
+                    System.arraycopy(data, 2, payload, 0, size);
+                }
+                publish(new Message(addr, type, payload));
             } catch (IOException ex) {
                 if (running) {
                     publish(ex);
@@ -81,7 +88,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
     protected void process(List<Object> chunks) {
         for (Object chunk : chunks) {
             if (chunk instanceof Message message) {
-                listener.accept(new ChatMessage(LocalTime.now(), "<-", message.getAddress(), new String(message.getPayload())));
+                listener.accept(message);
             } else if (chunk instanceof Throwable throwable) {
                 error.accept(throwable);
             }
@@ -116,7 +123,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         DatagramPacket dp = new DatagramPacket(data, data.length, broadcastAddr);
         try {
             socket.send(dp);
-            listener.accept(message);
+//            listener.accept(message);
         } catch (IOException ex) {
             running = false;
             error.accept(ex);
