@@ -115,10 +115,12 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         if (!running) {
             error.accept(new IllegalStateException("UPD is offline!!!"));
         }
-
-        byte[] data = new byte[]{PLAIN_MESSAGE};
-        data = Arrays.copyOf(data, data.length + message.text().length());
-        System.arraycopy(message.text().getBytes(), 0, data, data.length - message.text().length(), message.text().length());
+        byte[] payload = message.text().getBytes();
+        byte[] data = new byte[1 + 1 + payload.length];
+        data[0] = PLAIN_MESSAGE;
+        // TODO: payload size must be less than 127 bytes
+        data[1] = (byte) payload.length;
+        System.arraycopy(payload, 0, data, 2, payload.length);
 
         DatagramPacket dp = new DatagramPacket(data, data.length, broadcastAddr);
         try {
