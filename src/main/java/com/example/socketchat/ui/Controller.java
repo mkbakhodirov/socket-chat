@@ -25,8 +25,6 @@ public class Controller {
     private final MainFrame frame = new MainFrame();
     private final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 
-    private final Object lock = new Object();
-
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public void run() {
@@ -138,8 +136,8 @@ public class Controller {
     private void appendMessage(Message message) {
         switch (message.getType()) {
             case UdpBroadcastService.HELLO:
-                User user = new User(LocalTime.now(), message.getAddress());
-                synchronized (lock) {
+                SwingUtilities.invokeLater(() -> {
+                    User user = new User(LocalTime.now(), message.getAddress());
                     UserModel um = (UserModel) frame.addressList.getModel();
                     Enumeration<User> en = um.elements();
                     while (en.hasMoreElements()) {
@@ -150,7 +148,7 @@ public class Controller {
                         }
                     }
                     um.addElement(user);
-                }
+                });
                 break;
 
             case UdpBroadcastService.PLAIN_MESSAGE:
