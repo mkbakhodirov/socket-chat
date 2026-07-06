@@ -4,7 +4,6 @@ import com.example.socketchat.dto.Message;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
 import java.io.IOException;
@@ -166,7 +165,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
     }
 
     public byte[] encrypt(String plainText, String hexKey) throws Exception {
-        byte[] keyBytes = HexFormat.of().parseHex(hexKey);
+        byte[] keyBytes = parseAesKey(hexKey);
         SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
 
         byte[] iv = new byte[12];
@@ -187,7 +186,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
     }
 
     public String decrypt(byte[] encrypted, String hexKey) throws Exception {
-        byte[] keyBytes = HexFormat.of().parseHex(hexKey);
+        byte[] keyBytes = parseAesKey(hexKey);
         SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
 
         byte[] iv = Arrays.copyOfRange(encrypted, 0, 12);
@@ -201,5 +200,19 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         byte[] plaintext = cipher.doFinal(ciphertext);
 
         return new String(plaintext, StandardCharsets.UTF_8);
+    }
+
+    private byte[] parseAesKey(String hexKey) {
+        String normalizedKey = hexKey.replaceAll("\\s+", "");
+        if (!normalizedKey.matches("[0-9a-fA-F]+")) {
+            throw new IllegalArgumentException("AES key must contain only hexadecimal characters");
+        }
+
+        if (normalizedKey.length() != 32 && normalizedKey.length() != 48 && normalizedKey.length() != 64) {
+            throw new IllegalArgumentException("AES key must be 32, 48, or 64 hex characters");
+        }
+
+        byte[] keyBytes = HexFormat.of().parseHex(normalizedKey);
+        return keyBytes;
     }
 }
