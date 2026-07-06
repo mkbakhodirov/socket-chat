@@ -1,12 +1,18 @@
 package com.example.socketchat.service;
 
 import com.example.socketchat.dto.Message;
-import com.example.socketchat.model.ChatMessage;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
 import java.io.IOException;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -113,7 +119,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
 
     public void send(String message, SocketAddress sa) {
         if (!running) {
-            error.accept(new IllegalStateException("UPD is offline!!!"));
+            error.accept(new IllegalStateException("UDP is OFFLINE!!!"));
         }
         byte[] payload = message.getBytes();
         byte[] data = new byte[1 + 1 + payload.length];
@@ -130,5 +136,70 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
             running = false;
             error.accept(ex);
         }
+    }
+
+    public void sendEncrypted(String message, String hexKey, SocketAddress sa) {
+        if (!running) {
+            error.accept(new IllegalStateException("UDP is OFFLINE!!!"));
+        }
+        byte[] payload;
+        try {
+            payload = encrypt(message, hexKey);
+        } catch (Exception ex) {
+            error.accept(ex);
+            return;
+        }
+        byte[] data = new byte[1 + 1 + payload.length];
+        data[0] = ENCRYPTED_MESSAGE;
+        // TODO: payload size must be less than 127 bytes
+        data[1] = (byte) payload.length;
+        System.arraycopy(payload, 0, data, 2, payload.length);
+
+        DatagramPacket dp = new DatagramPacket(data, data.length, sa);
+        try {
+            socket.send(dp);
+//            listener.accept(message);
+        } catch (IOException ex) {
+            running = false;
+            error.accept(ex);
+        }
+    }
+
+    public byte[] encrypt(String plainText, String hexKey) throws Exception {
+        byte[] keyBytes = HexFormat.of().parseHex(hexKey);
+        SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
+
+        byte[] iv = new byte[12];
+        new SecureRandom().nextBytes(iv);
+
+        GCMParameterSpec spec = new GCMParameterSpec(128, iv);
+
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, spec);
+
+        byte[] ciphertext = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
+
+        byte[] result = new byte[iv.length + ciphertext.length];
+        System.arraycopy(iv, 0, result, 0, iv.length);
+        System.arraycopy(ciphertext, 0, result, iv.length, ciphertext.length);
+
+        return result;
+    }
+
+    public String decrypt(byte[] encrypted, String hexKey) throws Exception {
+        byte[] keyBytes = HexFormat.of().parseHex(hexKey);
+        SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
+
+        byte[] iv = Arrays.copyOfRange(encrypted, 0, 12);
+        byte[] ciphertext = Arrays.copyOfRange(encrypted, 12, encrypted.length);
+
+        GCMParameterSpec spec = new GCMParameterSpec(128, iv);
+
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, spec);
+
+        byte[] plaintext = cipher.doFinal(ciphertext);
+
+        return new String(plaintext, StandardCharsets.UTF_8);
     }
 }

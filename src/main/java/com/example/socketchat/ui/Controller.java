@@ -1,8 +1,8 @@
 package com.example.socketchat.ui;
 
 import com.example.socketchat.dto.Message;
-import com.example.socketchat.model.User;
 import com.example.socketchat.model.ChatMessage;
+import com.example.socketchat.model.User;
 import com.example.socketchat.model.UserModel;
 import com.example.socketchat.service.UdpBroadcastService;
 
@@ -51,6 +51,7 @@ public class Controller {
 
         frame.sendButton.addActionListener(event -> sendMessage());
 
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 
@@ -126,7 +127,8 @@ public class Controller {
         }
         try {
             InetSocketAddress isa = new InetSocketAddress(user.getAddress(), Integer.parseInt(frame.portField.getText().trim()));
-            udpService.send(text, isa);
+//            udpService.send(text, isa);
+            udpService.sendEncrypted(text, frame.hexKeyField.getText().trim(), isa);
             frame.inputField.setText("");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(frame, ex.getMessage(), "Could not send UDP message", JOptionPane.ERROR_MESSAGE);
@@ -135,7 +137,7 @@ public class Controller {
 
     private void appendMessage(Message message) {
         switch (message.getType()) {
-            case UdpBroadcastService.HELLO:
+            case UdpBroadcastService.HELLO: {
                 SwingUtilities.invokeLater(() -> {
                     User user = new User(LocalTime.now(), message.getAddress());
                     UserModel um = (UserModel) frame.addressList.getModel();
@@ -150,8 +152,9 @@ public class Controller {
                     um.addElement(user);
                 });
                 break;
+            }
 
-            case UdpBroadcastService.PLAIN_MESSAGE:
+            case UdpBroadcastService.PLAIN_MESSAGE: {
                 ChatMessage cm = new ChatMessage(LocalTime.now(), "<-", message.getAddress(), new String(message.getPayload()));
                 frame.messages.append("%s  %s  %s  %s%n".formatted(
                         timeFormat.format(cm.time()),
@@ -161,6 +164,29 @@ public class Controller {
                 ));
                 frame.messages.setCaretPosition(frame.messages.getDocument().getLength());
                 break;
+            }
+
+            case UdpBroadcastService.ENCRYPTED_MESSAGE: {
+                String text;
+                try {
+                    text = udpService.decrypt(message.getPayload(), frame.hexKeyField.getText().trim());
+                } catch (Throwable t) {
+                    SwingUtilities.invokeLater(() -> {
+                        frame.messages.append("Error: " + t.getMessage() + "\n");
+                    });
+                    return;
+                }
+
+                ChatMessage cm = new ChatMessage(LocalTime.now(), "<-", message.getAddress(), text);
+                frame.messages.append("%s  %s  %s  %s%n".formatted(
+                        timeFormat.format(cm.time()),
+                        cm.direction(),
+                        cm.sender(),
+                        cm.text()
+                ));
+                frame.messages.setCaretPosition(frame.messages.getDocument().getLength());
+                break;
+            }
         }
     }
 }

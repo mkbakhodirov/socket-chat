@@ -40,6 +40,8 @@ public class MainFrame extends javax.swing.JFrame {
         startCheck = new javax.swing.JCheckBox();
         spacerLabel = new javax.swing.JLabel();
         statusLabel = new javax.swing.JLabel();
+        hexKeyLabel = new javax.swing.JLabel();
+        hexKeyField = new javax.swing.JTextField();
         centerPanel = new javax.swing.JPanel();
         addressPanel = new javax.swing.JPanel();
         addressHeaderPanel = new javax.swing.JPanel();
@@ -122,7 +124,7 @@ public class MainFrame extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 14);
         controlsPanel.add(startCheck, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.weightx = 1.0;
         controlsPanel.add(spacerLabel, gridBagConstraints);
@@ -130,10 +132,27 @@ public class MainFrame extends javax.swing.JFrame {
         statusLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         statusLabel.setText("* LISTENING");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         controlsPanel.add(statusLabel, gridBagConstraints);
+
+        hexKeyLabel.setText("HEX KEY");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
+        controlsPanel.add(hexKeyLabel, gridBagConstraints);
+
+        hexKeyField.setText("00aaff");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 14);
+        controlsPanel.add(hexKeyField, gridBagConstraints);
 
         headerPanel.add(controlsPanel, java.awt.BorderLayout.CENTER);
 
@@ -245,6 +264,8 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel clearLabel;
     private javax.swing.JPanel controlsPanel;
     private javax.swing.JPanel headerPanel;
+    public javax.swing.JTextField hexKeyField;
+    private javax.swing.JLabel hexKeyLabel;
     public javax.swing.JTextField inputField;
     private javax.swing.JPanel messageHeaderPanel;
     private javax.swing.JPanel messageInputPanel;
