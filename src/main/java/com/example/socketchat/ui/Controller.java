@@ -17,8 +17,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
 import java.util.Enumeration;
+import java.util.HexFormat;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -40,8 +40,7 @@ public class Controller {
     public void run() {
         try {
             identity = elGamalEncryption.generateKeyPair();
-            frame.publicKeyField.setText(Base64.getEncoder().encodeToString(
-                    elGamalEncryption.encodePublicKey(identity.getPublic())));
+            frame.publicKeyField.setText(HexFormat.of().formatHex(elGamalEncryption.encodePublicKey(identity.getPublic())));
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(frame, ex.getMessage(),
                     "Could not create encryption identity", JOptionPane.ERROR_MESSAGE);
