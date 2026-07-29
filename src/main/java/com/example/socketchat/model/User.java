@@ -38,7 +38,7 @@ public class User {
     }
 
     public byte[] getPublicKey() {
-        return publicKey.clone();
+        return publicKey;
     }
 
     public void setPublicKey(byte[] publicKey) {
