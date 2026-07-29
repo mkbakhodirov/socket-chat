@@ -45,7 +45,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
             if (!running) {
                 return;
             }
-            sendPayload(HELLO, this.localPublicKey, broadcastAddr);
+            send(HELLO, this.localPublicKey, broadcastAddr);
         }, 3, 30, TimeUnit.SECONDS);
     }
 
@@ -102,7 +102,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         socket.setReuseAddress(true);
         socket.bind(new InetSocketAddress(port));
         running = true;
-        sendPayload(HELLO, localPublicKey, broadcastAddr);
+        send(HELLO, localPublicKey, broadcastAddr);
     }
 
     public synchronized void stop() {
@@ -113,12 +113,12 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         }
     }
 
-    public void send(String message, SocketAddress sa) {
+    public void sendPlain(String message, SocketAddress sa) {
         if (!running) {
             error.accept(new IllegalStateException("UDP is OFFLINE!!!"));
             return;
         }
-        sendPayload(PLAIN_MESSAGE, message.getBytes(StandardCharsets.UTF_8), sa);
+        send(PLAIN_MESSAGE, message.getBytes(StandardCharsets.UTF_8), sa);
     }
 
     public void sendEncrypted(String message, PublicKey recipientPublicKey, SocketAddress sa) {
@@ -133,10 +133,10 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
             error.accept(ex);
             return;
         }
-        sendPayload(ENCRYPTED_MESSAGE, payload, sa);
+        send(ENCRYPTED_MESSAGE, payload, sa);
     }
 
-    private void sendPayload(byte type, byte[] payload, SocketAddress sa) {
+    private void send(byte type, byte[] payload, SocketAddress sa) {
         byte[] data = new byte[2 + payload.length];
         data[0] = type;
         data[1] = (byte) payload.length;

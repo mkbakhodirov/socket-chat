@@ -151,7 +151,7 @@ public class Controller {
         }
         try {
             InetSocketAddress isa = new InetSocketAddress(user.getAddress(), Integer.parseInt(frame.portField.getText().trim()));
-//            udpService.send(text, isa);
+//            udpService.sendPlain(text, isa);
             udpService.sendEncrypted(text, elGamalEncryption.decodePublicKey(user.getPublicKey()), isa);
             frame.inputField.setText("");
         } catch (Exception ex) {
