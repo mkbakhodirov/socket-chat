@@ -40,8 +40,8 @@ public class MainFrame extends javax.swing.JFrame {
         startCheck = new javax.swing.JCheckBox();
         spacerLabel = new javax.swing.JLabel();
         statusLabel = new javax.swing.JLabel();
-        hexKeyLabel = new javax.swing.JLabel();
-        hexKeyField = new javax.swing.JTextField();
+        publicKeyLabel = new javax.swing.JLabel();
+        publicKeyField = new javax.swing.JTextField();
         centerPanel = new javax.swing.JPanel();
         addressPanel = new javax.swing.JPanel();
         addressHeaderPanel = new javax.swing.JPanel();
@@ -137,22 +137,23 @@ public class MainFrame extends javax.swing.JFrame {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         controlsPanel.add(statusLabel, gridBagConstraints);
 
-        hexKeyLabel.setText("HEX KEY");
+        publicKeyLabel.setText("MY PUBLIC KEY");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
-        controlsPanel.add(hexKeyLabel, gridBagConstraints);
+        controlsPanel.add(publicKeyLabel, gridBagConstraints);
 
-        hexKeyField.setText("00112233445566778899aabbccddeeff");
+        publicKeyField.setEditable(false);
+        publicKeyField.setText("");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 14);
-        controlsPanel.add(hexKeyField, gridBagConstraints);
+        controlsPanel.add(publicKeyField, gridBagConstraints);
 
         headerPanel.add(controlsPanel, java.awt.BorderLayout.CENTER);
 
@@ -264,8 +265,8 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel clearLabel;
     private javax.swing.JPanel controlsPanel;
     private javax.swing.JPanel headerPanel;
-    public javax.swing.JTextField hexKeyField;
-    private javax.swing.JLabel hexKeyLabel;
+    public javax.swing.JTextField publicKeyField;
+    private javax.swing.JLabel publicKeyLabel;
     public javax.swing.JTextField inputField;
     private javax.swing.JPanel messageHeaderPanel;
     private javax.swing.JPanel messageInputPanel;

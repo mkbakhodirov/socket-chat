@@ -4,10 +4,6 @@
  */
 package com.example.socketchat.dto;
 
-/**
- *
- * @author USER-GNK
- */
 public class Message {
 
     final String address;

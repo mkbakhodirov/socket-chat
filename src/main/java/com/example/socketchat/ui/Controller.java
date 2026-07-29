@@ -1,7 +1,7 @@
 package com.example.socketchat.ui;
 
 import com.example.socketchat.dto.Message;
-import com.example.socketchat.encryption.GcmEncryption;
+import com.example.socketchat.encryption.ElGamalEncryption;
 import com.example.socketchat.model.ChatMessage;
 import com.example.socketchat.model.User;
 import com.example.socketchat.model.UserModel;
@@ -13,8 +13,11 @@ import javax.swing.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.Enumeration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -26,7 +29,8 @@ public class Controller {
 
     UdpBroadcastService udpService;
     @Inject
-    GcmEncryption gcmEncryption;
+    ElGamalEncryption elGamalEncryption;
+    private KeyPair identity;
 
     private final MainFrame frame = new MainFrame();
     private final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
@@ -34,6 +38,16 @@ public class Controller {
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public void run() {
+        try {
+            identity = elGamalEncryption.generateKeyPair();
+            frame.publicKeyField.setText(Base64.getEncoder().encodeToString(
+                    elGamalEncryption.encodePublicKey(identity.getPublic())));
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(frame, ex.getMessage(),
+                    "Could not create encryption identity", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         loadAddresses();
 
         startListening();
@@ -95,14 +109,19 @@ public class Controller {
 
         try {
             InetSocketAddress broadcastAddr = new InetSocketAddress(frame.addressField.getText(), Integer.parseInt(frame.portField.getText()));
-            udpService = new UdpBroadcastService(broadcastAddr, this::appendMessage, new Consumer<Throwable>() {
-                @Override
-                public void accept(Throwable t) {
-                    SwingUtilities.invokeLater(() -> {
-                        frame.messages.append("Error: " + t.getMessage() + "\n");
-                    });
-                }
-            });
+            udpService = new UdpBroadcastService(
+                    broadcastAddr,
+                    elGamalEncryption.encodePublicKey(identity.getPublic()),
+                    this::appendMessage,
+                    new Consumer<Throwable>() {
+                        @Override
+                        public void accept(Throwable t) {
+                            SwingUtilities.invokeLater(() -> {
+                                frame.messages.append("Error: " + t.getMessage() + "\n");
+                            });
+                        }
+                    }
+            );
             udpService.start(Integer.parseInt(frame.portField.getText().trim()));
             udpService.execute();
             setStatus(true);
@@ -134,7 +153,7 @@ public class Controller {
         try {
             InetSocketAddress isa = new InetSocketAddress(user.getAddress(), Integer.parseInt(frame.portField.getText().trim()));
 //            udpService.send(text, isa);
-            udpService.sendEncrypted(text, frame.hexKeyField.getText().trim(), isa);
+            udpService.sendEncrypted(text, elGamalEncryption.decodePublicKey(user.getPublicKey()), isa);
             frame.inputField.setText("");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(frame, ex.getMessage(), "Could not send UDP message", JOptionPane.ERROR_MESSAGE);
@@ -145,13 +164,24 @@ public class Controller {
         switch (message.getType()) {
             case UdpBroadcastService.HELLO: {
                 SwingUtilities.invokeLater(() -> {
-                    User user = new User(LocalTime.now(), message.getAddress());
+                    try {
+                        elGamalEncryption.decodePublicKey(message.getPayload());
+                    } catch (Exception ex) {
+                        frame.messages.append("Ignored invalid public key from "
+                                + message.getAddress() + "\n");
+                        return;
+                    }
+
+                    User user = new User(LocalTime.now(), message.getAddress(), message.getPayload());
                     UserModel um = (UserModel) frame.addressList.getModel();
                     Enumeration<User> en = um.elements();
                     while (en.hasMoreElements()) {
                         User u = en.nextElement();
                         if (u.getAddress().equals(user.getAddress())) {
                             u.setTime(user.getTime());
+                            if (!u.hasPublicKey(user.getPublicKey())) {
+                                u.setPublicKey(user.getPublicKey());
+                            }
                             return;
                         }
                     }
@@ -161,7 +191,12 @@ public class Controller {
             }
 
             case UdpBroadcastService.PLAIN_MESSAGE: {
-                ChatMessage cm = new ChatMessage(LocalTime.now(), "<-", message.getAddress(), new String(message.getPayload()));
+                ChatMessage cm = new ChatMessage(
+                        LocalTime.now(),
+                        "<-",
+                        message.getAddress(),
+                        new String(message.getPayload(), StandardCharsets.UTF_8)
+                );
                 frame.messages.append("%s  %s  %s  %s%n".formatted(
                         timeFormat.format(cm.time()),
                         cm.direction(),
@@ -175,7 +210,7 @@ public class Controller {
             case UdpBroadcastService.ENCRYPTED_MESSAGE: {
                 String text;
                 try {
-                    text = gcmEncryption.decrypt(message.getPayload(), frame.hexKeyField.getText().trim());
+                    text = elGamalEncryption.decrypt(message.getPayload(), identity.getPrivate());
                 } catch (Throwable t) {
                     SwingUtilities.invokeLater(() -> {
                         frame.messages.append("Error: " + t.getMessage() + "\n");

@@ -163,9 +163,9 @@
                 </Constraint>
               </Constraints>
             </Component>
-            <Component class="javax.swing.JLabel" name="hexKeyLabel">
+            <Component class="javax.swing.JLabel" name="publicKeyLabel">
               <Properties>
-                <Property name="text" type="java.lang.String" value="HEX KEY"/>
+                <Property name="text" type="java.lang.String" value="MY PUBLIC KEY"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -173,9 +173,10 @@
                 </Constraint>
               </Constraints>
             </Component>
-            <Component class="javax.swing.JTextField" name="hexKeyField">
+            <Component class="javax.swing.JTextField" name="publicKeyField">
               <Properties>
-                <Property name="text" type="java.lang.String" value="00112233445566778899aabbccddeeff"/>
+                <Property name="editable" type="boolean" value="false"/>
+                <Property name="text" type="java.lang.String" value=""/>
               </Properties>
               <AuxValues>
                 <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/>

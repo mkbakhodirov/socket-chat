@@ -1,12 +1,13 @@
 package com.example.socketchat.service;
 
 import com.example.socketchat.dto.Message;
-import com.example.socketchat.encryption.GcmEncryption;
+import com.example.socketchat.encryption.ElGamalEncryption;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.security.PublicKey;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,7 +21,8 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
     private Consumer<Throwable> error;
     private DatagramSocket socket;
     private volatile boolean running;
-    private final GcmEncryption gcmEncryption = new GcmEncryption();
+    private final ElGamalEncryption elGamalEncryption = new ElGamalEncryption();
+    private final byte[] localPublicKey;
 
     public static final byte HELLO = 0x00;
     public static final byte PLAIN_MESSAGE = 0x01;
@@ -28,24 +30,22 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
 
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    public UdpBroadcastService(final SocketAddress broadcastAddr, final Consumer<Message> listener, final Consumer<Throwable> error) {
+    public UdpBroadcastService(
+            SocketAddress broadcastAddr,
+            byte[] localPublicKey,
+            Consumer<Message> listener,
+            Consumer<Throwable> error
+    ) {
         this.broadcastAddr = broadcastAddr;
+        this.localPublicKey = localPublicKey.clone();
         this.listener = listener;
         this.error = error;
 
-        // Schedule the task
         scheduler.scheduleAtFixedRate(() -> {
             if (!running) {
                 return;
             }
-            byte[] udpHello = new byte[]{HELLO};
-            DatagramPacket dp = new DatagramPacket(udpHello, udpHello.length, broadcastAddr);
-            try {
-                socket.send(dp);
-            } catch (IOException ex) {
-                running = false;
-                error.accept(ex);
-            }
+            sendPayload(HELLO, this.localPublicKey, broadcastAddr);
         }, 3, 30, TimeUnit.SECONDS);
     }
 
@@ -70,10 +70,8 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
                 int size = 0;
                 byte[] payload = new byte[size];
                 if (data.length > 1) {
-//                    size = ((data[1] & 0xff) << 8) | (data[2] & 0xff);
                     size = data[1];
                     payload = new byte[size];
-//                    System.arraycopy(data, 3, payload, 0, size);
                     System.arraycopy(data, 2, payload, 0, size);
                 }
                 publish(new Message(addr, type, payload));
@@ -104,6 +102,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         socket.setReuseAddress(true);
         socket.bind(new InetSocketAddress(port));
         running = true;
+        sendPayload(HELLO, localPublicKey, broadcastAddr);
     }
 
     public synchronized void stop() {
@@ -122,14 +121,14 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         sendPayload(PLAIN_MESSAGE, message.getBytes(StandardCharsets.UTF_8), sa);
     }
 
-    public void sendEncrypted(String message, String hexKey, SocketAddress sa) {
+    public void sendEncrypted(String message, PublicKey recipientPublicKey, SocketAddress sa) {
         if (!running) {
             error.accept(new IllegalStateException("UDP is OFFLINE!!!"));
             return;
         }
         byte[] payload;
         try {
-            payload = gcmEncryption.encrypt(message, hexKey);
+            payload = elGamalEncryption.encrypt(message, recipientPublicKey);
         } catch (Exception ex) {
             error.accept(ex);
             return;
@@ -138,11 +137,8 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
     }
 
     private void sendPayload(byte type, byte[] payload, SocketAddress sa) {
-        byte[] data = new byte[3 + payload.length];
+        byte[] data = new byte[2 + payload.length];
         data[0] = type;
-//        data[1] = (byte) (payload.length >>> 8);
-//        data[2] = (byte) payload.length;
-//        System.arraycopy(payload, 0, data, 3, payload.length);
         data[1] = (byte) payload.length;
         System.arraycopy(payload, 0, data, 2, payload.length);
 
@@ -150,7 +146,6 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         try {
             socket.send(dp);
         } catch (IOException ex) {
-            running = false;
             error.accept(ex);
         }
     }

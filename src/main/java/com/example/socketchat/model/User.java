@@ -5,6 +5,7 @@
 package com.example.socketchat.model;
 
 import java.time.LocalTime;
+import java.util.Arrays;
 
 /**
  *
@@ -16,9 +17,12 @@ public class User {
 
     String address;
 
-    public User(LocalTime time, String address) {
+    byte[] publicKey;
+
+    public User(LocalTime time, String address, byte[] publicKey) {
         this.time = time;
         this.address = address;
+        this.publicKey = publicKey;
     }
 
     public LocalTime getTime() {
@@ -31,6 +35,18 @@ public class User {
 
     public String getAddress() {
         return address;
+    }
+
+    public byte[] getPublicKey() {
+        return publicKey.clone();
+    }
+
+    public void setPublicKey(byte[] publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public boolean hasPublicKey(byte[] publicKey) {
+        return Arrays.equals(this.publicKey, publicKey);
     }
 
     @Override
