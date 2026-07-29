@@ -1,10 +1,13 @@
 package com.example.socketchat.ui;
 
 import com.example.socketchat.dto.Message;
+import com.example.socketchat.encryption.GcmEncryption;
 import com.example.socketchat.model.ChatMessage;
 import com.example.socketchat.model.User;
 import com.example.socketchat.model.UserModel;
 import com.example.socketchat.service.UdpBroadcastService;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import javax.swing.*;
 import java.awt.event.KeyAdapter;
@@ -18,9 +21,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+@Singleton
 public class Controller {
 
     UdpBroadcastService udpService;
+    @Inject
+    GcmEncryption gcmEncryption;
 
     private final MainFrame frame = new MainFrame();
     private final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
@@ -169,7 +175,7 @@ public class Controller {
             case UdpBroadcastService.ENCRYPTED_MESSAGE: {
                 String text;
                 try {
-                    text = udpService.decrypt(message.getPayload(), frame.hexKeyField.getText().trim());
+                    text = gcmEncryption.decrypt(message.getPayload(), frame.hexKeyField.getText().trim());
                 } catch (Throwable t) {
                     SwingUtilities.invokeLater(() -> {
                         frame.messages.append("Error: " + t.getMessage() + "\n");
