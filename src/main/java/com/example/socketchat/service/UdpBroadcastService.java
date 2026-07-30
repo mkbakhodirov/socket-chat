@@ -2,7 +2,6 @@ package com.example.socketchat.service;
 
 import com.example.socketchat.dto.Message;
 import com.example.socketchat.encryption.ElGamalEncryption;
-import com.example.socketchat.encryption.ElGamalEncryption.PublicKey;
 
 import javax.swing.*;
 import java.io.IOException;

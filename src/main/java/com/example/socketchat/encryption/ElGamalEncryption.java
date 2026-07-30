@@ -18,7 +18,7 @@ public final class ElGamalEncryption {
     private static final BigInteger TWO = BigInteger.TWO;
     private static final BigInteger P = TWO.pow(255).subtract(BigInteger.valueOf(19));
     private static final BigInteger G = TWO;
-    private static final SecureRandom RANDOM = new SecureRandom();
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private static final byte FORMAT_VERSION = 1;
     private static final int ELGAMAL_BYTES = (P.bitLength() + 7) / 8;
@@ -36,7 +36,7 @@ public final class ElGamalEncryption {
     }
 
     public byte[] encodePublicKey(PublicKey publicKey) {
-        return toFixedLength(publicKey.getValue());
+        return encodeElGamalValue(publicKey.getValue());
     }
 
     public PublicKey decodePublicKey(byte[] encoded) {
@@ -45,23 +45,20 @@ public final class ElGamalEncryption {
         }
 
         BigInteger value = new BigInteger(1, encoded);
-        validatePublicValue(value);
+        validatePublicKeyValue(value);
         return new PublicKey(value);
     }
 
-    public byte[] encrypt(String plainText, byte[] receiverPublicKey)
-            throws Exception {
+    public byte[] encrypt(String plainText, byte[] receiverPublicKey) throws Exception {
         return encrypt(plainText, decodePublicKey(receiverPublicKey));
     }
 
-    public byte[] encrypt(String plainText, PublicKey recipientPublicKey)
-            throws Exception {
+    public byte[] encrypt(String plainText, PublicKey receiverPublicKey) throws Exception {
         BigInteger ephemeralPrivate = randomExponent();
-        byte[] ephemeralPublic = toFixedLength(G.modPow(ephemeralPrivate, P));
-        byte[] aesKey = deriveAesKey(
-                recipientPublicKey.value.modPow(ephemeralPrivate, P));
+        byte[] ephemeralPublic = encodeElGamalValue(G.modPow(ephemeralPrivate, P));
+        byte[] aesKey = toAesKey(receiverPublicKey.value.modPow(ephemeralPrivate, P));
         byte[] iv = new byte[IV_BYTES];
-        RANDOM.nextBytes(iv);
+        SECURE_RANDOM.nextBytes(iv);
 
         byte[] plaintext = plainText.getBytes(StandardCharsets.UTF_8);
         int maximumPlaintextBytes = MAX_PACKET_PAYLOAD_BYTES
@@ -74,8 +71,11 @@ public final class ElGamalEncryption {
 
         try {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-            cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(aesKey, "AES"),
-                    new GCMParameterSpec(GCM_TAG_BYTES * 8, iv));
+            cipher.init(
+                    Cipher.ENCRYPT_MODE,
+                    new SecretKeySpec(aesKey, "AES"),
+                    new GCMParameterSpec(GCM_TAG_BYTES * 8, iv)
+            );
             cipher.updateAAD(header(ephemeralPublic));
             byte[] ciphertext = cipher.doFinal(plaintext);
 
@@ -91,8 +91,7 @@ public final class ElGamalEncryption {
         }
     }
 
-    public String decrypt(byte[] encrypted, PrivateKey recipientPrivateKey)
-            throws Exception {
+    public String decrypt(byte[] encrypted, PrivateKey receiverPublicKey) throws Exception {
         if (encrypted == null || encrypted.length < 2 + ELGAMAL_BYTES
                 + IV_BYTES + GCM_TAG_BYTES) {
             throw new IllegalArgumentException("Invalid encrypted message");
@@ -120,14 +119,16 @@ public final class ElGamalEncryption {
         input.get(ciphertext);
 
         BigInteger ephemeralValue = new BigInteger(1, ephemeralPublic);
-        validatePublicValue(ephemeralValue);
-        byte[] aesKey = deriveAesKey(
-                ephemeralValue.modPow(recipientPrivateKey.getValue(), P));
+        validatePublicKeyValue(ephemeralValue);
+        byte[] aesKey = toAesKey(ephemeralValue.modPow(receiverPublicKey.getValue(), P));
 
         try {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-            cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(aesKey, "AES"),
-                    new GCMParameterSpec(GCM_TAG_BYTES * 8, iv));
+            cipher.init(
+                    Cipher.DECRYPT_MODE,
+                    new SecretKeySpec(aesKey, "AES"),
+                    new GCMParameterSpec(GCM_TAG_BYTES * 8, iv)
+            );
             cipher.updateAAD(header(ephemeralPublic));
             return new String(cipher.doFinal(ciphertext), StandardCharsets.UTF_8);
         } finally {
@@ -139,24 +140,23 @@ public final class ElGamalEncryption {
         BigInteger maximum = P.subtract(TWO);
         BigInteger value;
         do {
-            value = new BigInteger(P.bitLength(), RANDOM);
+            value = new BigInteger(P.bitLength(), SECURE_RANDOM);
         } while (value.compareTo(TWO) < 0 || value.compareTo(maximum) > 0);
         return value;
     }
 
-    private static void validatePublicValue(BigInteger value) {
+    private static void validatePublicKeyValue(BigInteger value) {
         if (value.compareTo(TWO) < 0 || value.compareTo(P.subtract(TWO)) > 0) {
             throw new IllegalArgumentException("Invalid ElGamal public key");
         }
     }
 
-    private static byte[] deriveAesKey(BigInteger sharedSecret)
-            throws Exception {
+    private static byte[] toAesKey(BigInteger sharedSecret) throws Exception {
         return MessageDigest.getInstance("SHA-256")
-                .digest(toFixedLength(sharedSecret));
+                .digest(encodeElGamalValue(sharedSecret));
     }
 
-    private static byte[] toFixedLength(BigInteger value) {
+    private static byte[] encodeElGamalValue(BigInteger value) {
         byte[] source = value.toByteArray();
         byte[] result = new byte[ELGAMAL_BYTES];
         int sourceOffset = source.length > ELGAMAL_BYTES ? 1 : 0;
