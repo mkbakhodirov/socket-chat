@@ -10,7 +10,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
-import java.util.Arrays;
 
 @Singleton
 public final class ElGamalEncryption {
@@ -55,7 +54,7 @@ public final class ElGamalEncryption {
     public byte[] encrypt(String plainText, PublicKey receiverPublicKey) throws Exception {
         KeyPair ephemeralKeyPair = generateKeyPair();
         byte[] ephemeralPublic = encodeElGamalValue(ephemeralKeyPair.getPublic().getValue());
-        byte[] aesKey = toAesKey(receiverPublicKey.getValue().modPow(ephemeralKeyPair.getPrivate().getValue(), P));
+        byte[] key = toAesKey(receiverPublicKey.getValue().modPow(ephemeralKeyPair.getPrivate().getValue(), P));
         byte[] iv = new byte[IV_BYTES];
         SECURE_RANDOM.nextBytes(iv);
 
@@ -68,28 +67,25 @@ public final class ElGamalEncryption {
                             + maximumPlaintextBytes + " UTF-8 bytes");
         }
 
-        try {
-            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-            cipher.init(
-                    Cipher.ENCRYPT_MODE,
-                    new SecretKeySpec(aesKey, "AES"),
-                    new GCMParameterSpec(GCM_TAG_BYTES * 8, iv)
-            );
-            cipher.updateAAD(header(ephemeralPublic));
-            byte[] ciphertext = cipher.doFinal(plaintext);
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(
+                Cipher.ENCRYPT_MODE,
+                new SecretKeySpec(key, "AES"),
+                new GCMParameterSpec(GCM_TAG_BYTES * 8, iv)
+        );
+        cipher.updateAAD(header(ephemeralPublic));
 
-            return ByteBuffer.allocate(1 + ephemeralPublic.length + IV_BYTES + ciphertext.length)
-                    .put((byte) ephemeralPublic.length)
-                    .put(ephemeralPublic)
-                    .put(iv)
-                    .put(ciphertext)
-                    .array();
-        } finally {
-            Arrays.fill(aesKey, (byte) 0);
-        }
+        byte[] ciphertext = cipher.doFinal(plaintext);
+
+        return ByteBuffer.allocate(1 + ephemeralPublic.length + IV_BYTES + ciphertext.length)
+                .put((byte) ephemeralPublic.length)
+                .put(ephemeralPublic)
+                .put(iv)
+                .put(ciphertext)
+                .array();
     }
 
-    public String decrypt(byte[] encrypted, PrivateKey receiverPublicKey) throws Exception {
+    public String decrypt(byte[] encrypted, PrivateKey receiverPrivateKey) throws Exception {
         if (encrypted == null || encrypted.length < 1 + ELGAMAL_BYTES
                 + IV_BYTES + GCM_TAG_BYTES) {
             throw new IllegalArgumentException("Invalid encrypted message");
@@ -115,20 +111,19 @@ public final class ElGamalEncryption {
 
         BigInteger ephemeralValue = new BigInteger(1, ephemeralPublic);
         validatePublicKeyValue(ephemeralValue);
-        byte[] aesKey = toAesKey(ephemeralValue.modPow(receiverPublicKey.getValue(), P));
+        byte[] key = toAesKey(ephemeralValue.modPow(receiverPrivateKey.getValue(), P));
 
-        try {
-            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-            cipher.init(
-                    Cipher.DECRYPT_MODE,
-                    new SecretKeySpec(aesKey, "AES"),
-                    new GCMParameterSpec(GCM_TAG_BYTES * 8, iv)
-            );
-            cipher.updateAAD(header(ephemeralPublic));
-            return new String(cipher.doFinal(ciphertext), StandardCharsets.UTF_8);
-        } finally {
-            Arrays.fill(aesKey, (byte) 0);
-        }
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(
+                Cipher.DECRYPT_MODE,
+                new SecretKeySpec(key, "AES"),
+                new GCMParameterSpec(GCM_TAG_BYTES * 8, iv)
+        );
+        cipher.updateAAD(header(ephemeralPublic));
+
+        byte[] plaintext = cipher.doFinal(ciphertext);
+
+        return new String(plaintext, StandardCharsets.UTF_8);
     }
 
     private static BigInteger randomExponent() {
