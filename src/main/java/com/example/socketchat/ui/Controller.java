@@ -2,6 +2,7 @@ package com.example.socketchat.ui;
 
 import com.example.socketchat.dto.Message;
 import com.example.socketchat.encryption.ElGamalEncryption;
+import com.example.socketchat.encryption.ElGamalEncryption.KeyPair;
 import com.example.socketchat.model.ChatMessage;
 import com.example.socketchat.model.User;
 import com.example.socketchat.model.UserModel;
@@ -14,7 +15,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyPair;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
@@ -30,7 +30,7 @@ public class Controller {
     UdpBroadcastService udpService;
     @Inject
     ElGamalEncryption elGamalEncryption;
-    private KeyPair identity;
+    KeyPair identity;
 
     private final MainFrame frame = new MainFrame();
     private final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
@@ -152,7 +152,7 @@ public class Controller {
         try {
             InetSocketAddress isa = new InetSocketAddress(user.getAddress(), Integer.parseInt(frame.portField.getText().trim()));
 //            udpService.sendPlain(text, isa);
-            udpService.sendEncrypted(text, elGamalEncryption.decodePublicKey(user.getPublicKey()), isa);
+            udpService.sendEncrypted(text, user.getPublicKey(), isa);
             frame.inputField.setText("");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(frame, ex.getMessage(), "Could not send UDP message", JOptionPane.ERROR_MESSAGE);

@@ -2,12 +2,12 @@ package com.example.socketchat.service;
 
 import com.example.socketchat.dto.Message;
 import com.example.socketchat.encryption.ElGamalEncryption;
+import com.example.socketchat.encryption.ElGamalEncryption.PublicKey;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.security.PublicKey;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -37,7 +37,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
             Consumer<Throwable> error
     ) {
         this.broadcastAddr = broadcastAddr;
-        this.localPublicKey = localPublicKey.clone();
+        this.localPublicKey = localPublicKey;
         this.listener = listener;
         this.error = error;
 
@@ -121,14 +121,14 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         send(PLAIN_MESSAGE, message.getBytes(StandardCharsets.UTF_8), sa);
     }
 
-    public void sendEncrypted(String message, PublicKey recipientPublicKey, SocketAddress sa) {
+    public void sendEncrypted(String message, byte[] receiverPublicKey, SocketAddress sa) {
         if (!running) {
             error.accept(new IllegalStateException("UDP is OFFLINE!!!"));
             return;
         }
         byte[] payload;
         try {
-            payload = elGamalEncryption.encrypt(message, recipientPublicKey);
+            payload = elGamalEncryption.encrypt(message, receiverPublicKey);
         } catch (Exception ex) {
             error.accept(ex);
             return;
