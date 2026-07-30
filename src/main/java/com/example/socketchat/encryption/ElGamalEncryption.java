@@ -20,7 +20,6 @@ public final class ElGamalEncryption {
     private static final BigInteger G = TWO;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    private static final byte FORMAT_VERSION = 1;
     private static final int ELGAMAL_BYTES = (P.bitLength() + 7) / 8;
     private static final int IV_BYTES = 12;
     private static final int GCM_TAG_BYTES = 16;
@@ -54,15 +53,15 @@ public final class ElGamalEncryption {
     }
 
     public byte[] encrypt(String plainText, PublicKey receiverPublicKey) throws Exception {
-        BigInteger ephemeralPrivate = randomExponent();
-        byte[] ephemeralPublic = encodeElGamalValue(G.modPow(ephemeralPrivate, P));
-        byte[] aesKey = toAesKey(receiverPublicKey.value.modPow(ephemeralPrivate, P));
+        KeyPair ephemeralKeyPair = generateKeyPair();
+        byte[] ephemeralPublic = encodeElGamalValue(ephemeralKeyPair.getPublic().getValue());
+        byte[] aesKey = toAesKey(receiverPublicKey.getValue().modPow(ephemeralKeyPair.getPrivate().getValue(), P));
         byte[] iv = new byte[IV_BYTES];
         SECURE_RANDOM.nextBytes(iv);
 
         byte[] plaintext = plainText.getBytes(StandardCharsets.UTF_8);
         int maximumPlaintextBytes = MAX_PACKET_PAYLOAD_BYTES
-                - 2 - ephemeralPublic.length - IV_BYTES - GCM_TAG_BYTES;
+                - 1 - ephemeralPublic.length - IV_BYTES - GCM_TAG_BYTES;
         if (plaintext.length > maximumPlaintextBytes) {
             throw new IllegalArgumentException(
                     "Encrypted message must be at most "
@@ -79,8 +78,7 @@ public final class ElGamalEncryption {
             cipher.updateAAD(header(ephemeralPublic));
             byte[] ciphertext = cipher.doFinal(plaintext);
 
-            return ByteBuffer.allocate(2 + ephemeralPublic.length + IV_BYTES + ciphertext.length)
-                    .put(FORMAT_VERSION)
+            return ByteBuffer.allocate(1 + ephemeralPublic.length + IV_BYTES + ciphertext.length)
                     .put((byte) ephemeralPublic.length)
                     .put(ephemeralPublic)
                     .put(iv)
@@ -92,7 +90,7 @@ public final class ElGamalEncryption {
     }
 
     public String decrypt(byte[] encrypted, PrivateKey receiverPublicKey) throws Exception {
-        if (encrypted == null || encrypted.length < 2 + ELGAMAL_BYTES
+        if (encrypted == null || encrypted.length < 1 + ELGAMAL_BYTES
                 + IV_BYTES + GCM_TAG_BYTES) {
             throw new IllegalArgumentException("Invalid encrypted message");
         }
@@ -101,9 +99,6 @@ public final class ElGamalEncryption {
         }
 
         ByteBuffer input = ByteBuffer.wrap(encrypted);
-        if (input.get() != FORMAT_VERSION) {
-            throw new IllegalArgumentException("Unsupported encrypted message version");
-        }
 
         int publicKeyLength = Byte.toUnsignedInt(input.get());
         if (publicKeyLength != ELGAMAL_BYTES
@@ -166,8 +161,7 @@ public final class ElGamalEncryption {
     }
 
     private static byte[] header(byte[] ephemeralPublic) {
-        return ByteBuffer.allocate(2 + ephemeralPublic.length)
-                .put(FORMAT_VERSION)
+        return ByteBuffer.allocate(1 + ephemeralPublic.length)
                 .put((byte) ephemeralPublic.length)
                 .put(ephemeralPublic)
                 .array();
