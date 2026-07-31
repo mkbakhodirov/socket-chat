@@ -43,6 +43,14 @@ public class MainFrame extends javax.swing.JFrame {
         elGamalYField = new javax.swing.JTextField();
         elGamalEphemeralLabel = new javax.swing.JLabel();
         elGamalEphemeralField = new javax.swing.JTextField();
+        selectedUserGLabel = new javax.swing.JLabel();
+        selectedUserGField = new javax.swing.JTextField();
+        selectedUserPLabel = new javax.swing.JLabel();
+        selectedUserPField = new javax.swing.JTextField();
+        selectedUserYLabel = new javax.swing.JLabel();
+        selectedUserYField = new javax.swing.JTextField();
+        selectedUserEphemeralLabel = new javax.swing.JLabel();
+        selectedUserEphemeralField = new javax.swing.JTextField();
         elGamalActionsPanel = new javax.swing.JPanel();
         elGamalRandomButton = new javax.swing.JButton();
         elGamalCalculateButton = new javax.swing.JButton();
@@ -60,6 +68,8 @@ public class MainFrame extends javax.swing.JFrame {
         encryptionCheck = new javax.swing.JCheckBox();
         hexKeyLabel = new javax.swing.JLabel();
         hexKeyField = new javax.swing.JTextField();
+        receiveHexKeyLabel = new javax.swing.JLabel();
+        receiveHexKeyField = new javax.swing.JTextField();
         elGamalCheck = new javax.swing.JCheckBox();
         viewElGamalButton = new javax.swing.JButton();
         centerPanel = new javax.swing.JPanel();
@@ -110,6 +120,30 @@ public class MainFrame extends javax.swing.JFrame {
 
         elGamalEphemeralField.setEditable(false);
         elGamalFieldsPanel.add(elGamalEphemeralField);
+
+        selectedUserGLabel.setText("Selected user G (public)");
+        elGamalFieldsPanel.add(selectedUserGLabel);
+
+        selectedUserGField.setEditable(false);
+        elGamalFieldsPanel.add(selectedUserGField);
+
+        selectedUserPLabel.setText("Selected user P (public)");
+        elGamalFieldsPanel.add(selectedUserPLabel);
+
+        selectedUserPField.setEditable(false);
+        elGamalFieldsPanel.add(selectedUserPField);
+
+        selectedUserYLabel.setText("Selected user y = G^x mod P (public)");
+        elGamalFieldsPanel.add(selectedUserYLabel);
+
+        selectedUserYField.setEditable(false);
+        elGamalFieldsPanel.add(selectedUserYField);
+
+        selectedUserEphemeralLabel.setText("Selected user ephemeral = G^k mod P (public)");
+        elGamalFieldsPanel.add(selectedUserEphemeralLabel);
+
+        selectedUserEphemeralField.setEditable(false);
+        elGamalFieldsPanel.add(selectedUserEphemeralField);
 
         elGamalContentPanel.add(elGamalFieldsPanel, java.awt.BorderLayout.CENTER);
 
@@ -209,7 +243,7 @@ public class MainFrame extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
         controlsPanel.add(encryptionCheck, gridBagConstraints);
 
-        hexKeyLabel.setText("HEX KEY");
+        hexKeyLabel.setText("SEND HEX KEY");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
@@ -227,6 +261,25 @@ public class MainFrame extends javax.swing.JFrame {
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
         controlsPanel.add(hexKeyField, gridBagConstraints);
+
+        receiveHexKeyLabel.setText("RECEIVE HEX KEY");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
+        controlsPanel.add(receiveHexKeyLabel, gridBagConstraints);
+
+        receiveHexKeyField.setEditable(false);
+        receiveHexKeyField.setText("00112233445566778899aabbccddeeff");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
+        controlsPanel.add(receiveHexKeyField, gridBagConstraints);
 
         elGamalCheck.setText("El Gamal Key Exchange");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -387,6 +440,16 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel messagesLabel;
     public javax.swing.JTextField portField;
     private javax.swing.JLabel portLabel;
+    public javax.swing.JTextField receiveHexKeyField;
+    private javax.swing.JLabel receiveHexKeyLabel;
+    public javax.swing.JTextField selectedUserEphemeralField;
+    private javax.swing.JLabel selectedUserEphemeralLabel;
+    public javax.swing.JTextField selectedUserGField;
+    private javax.swing.JLabel selectedUserGLabel;
+    public javax.swing.JTextField selectedUserPField;
+    private javax.swing.JLabel selectedUserPLabel;
+    public javax.swing.JTextField selectedUserYField;
+    private javax.swing.JLabel selectedUserYLabel;
     public javax.swing.JButton sendButton;
     private javax.swing.JLabel spacerLabel;
     public javax.swing.JCheckBox startCheck;

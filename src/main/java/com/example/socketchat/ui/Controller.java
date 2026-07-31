@@ -43,6 +43,7 @@ public class Controller {
 
     public void run() {
         frame.hexKeyField.setText("");
+        frame.receiveHexKeyField.setText("");
 
         identity = elGamalEncryption.generateKeyPair();
 
@@ -88,13 +89,17 @@ public class Controller {
     private void selectEncryption() {
         boolean enabled = frame.encryptionCheck.isSelected();
         if (enabled) {
-            frame.hexKeyField.setText(gcmEncryption.generateKey());
+            String key = gcmEncryption.generateKey();
+            frame.hexKeyField.setText(key);
+            frame.receiveHexKeyField.setText(key);
         } else {
             frame.elGamalCheck.setSelected(false);
             frame.hexKeyField.setText("");
+            frame.receiveHexKeyField.setText("");
         }
 
         frame.hexKeyField.setEditable(enabled && !frame.elGamalCheck.isSelected());
+        frame.receiveHexKeyField.setEditable(enabled && !frame.elGamalCheck.isSelected());
     }
 
     private void selectElGamal() {
@@ -103,6 +108,7 @@ public class Controller {
                 frame.encryptionCheck.setSelected(true);
             }
             frame.hexKeyField.setEditable(false);
+            frame.receiveHexKeyField.setEditable(false);
             showKeyForSelectedUser();
         } else {
             selectEncryption();
@@ -125,6 +131,9 @@ public class Controller {
         }
 
         frame.hexKeyField.setText(elGamalEncryption.toEncryptionKey(user.getPublicKey(), identity.k()));
+        frame.receiveHexKeyField.setText(
+                elGamalEncryption.toDecryptionKey(user.getPublicKey(), identity.x(), identity.p(), identity.g()
+        ));
     }
 
     private void showElGamalForm() {
@@ -134,6 +143,19 @@ public class Controller {
         frame.elGamalKField.setText(identity.k().toString());
         frame.elGamalYField.setText(identity.y().toString());
         frame.elGamalEphemeralField.setText(identity.ephemeral().toString());
+
+        User user = (User) frame.addressList.getSelectedValue();
+        if (user != null) {
+            frame.selectedUserGField.setText(user.getPublicKey().g().toString());
+            frame.selectedUserPField.setText(user.getPublicKey().p().toString());
+            frame.selectedUserYField.setText(user.getPublicKey().y().toString());
+            frame.selectedUserEphemeralField.setText(user.getPublicKey().ephemeral().toString());
+        } else {
+            frame.selectedUserGField.setText("");
+            frame.selectedUserPField.setText("");
+            frame.selectedUserYField.setText("");
+            frame.selectedUserEphemeralField.setText("");
+        }
 
         Runnable calculate = () -> {
             try {
@@ -348,21 +370,9 @@ public class Controller {
             case UdpBroadcastService.ENCRYPTED_MESSAGE, UdpBroadcastService.ELGAMAL_ENCRYPTED_MESSAGE: {
                 String text;
                 try {
-                    String key;
-                    if (message.getType() == UdpBroadcastService.ELGAMAL_ENCRYPTED_MESSAGE) {
-                        User sender = findUser(message.getAddress());
-                        if (sender == null) {
-                            throw new IllegalStateException(
-                                    "Cannot decrypt ElGamal message: sender public key is not available"
-                            );
-                        }
-                        key = elGamalEncryption.toDecryptionKey(
-                                sender.getPublicKey(), identity.x(), identity.p(), identity.g()
-                        );
-                    } else {
-                        key = frame.hexKeyField.getText().trim();
-                    }
-                    text = gcmEncryption.decrypt(message.getPayload(), key);
+                    text = gcmEncryption.decrypt(
+                            message.getPayload(), frame.receiveHexKeyField.getText().trim()
+                    );
                 } catch (Exception ex) {
                     SwingUtilities.invokeLater(() -> {
                         frame.messages.append("Error decrypting message: " + ex.getMessage() + "\n");
@@ -383,16 +393,6 @@ public class Controller {
         }
     }
 
-    private User findUser(String address) {
-        UserModel model = (UserModel) frame.addressList.getModel();
-        for (int i = 0; i < model.getSize(); i++) {
-            User user = model.getElementAt(i);
-            if (user.getAddress().equals(address)) {
-                return user;
-            }
-        }
-        return null;
-    }
 //
 //    private void appendMessage(Message message) {
 //        switch (message.getType()) {
