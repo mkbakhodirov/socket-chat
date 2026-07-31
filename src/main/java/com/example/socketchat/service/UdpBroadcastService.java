@@ -98,7 +98,6 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
             if (chunk instanceof Message message) {
                 listener.accept(message);
             } else if (chunk instanceof Throwable throwable) {
-                throwable.printStackTrace();
                 error.accept(throwable);
             }
         }

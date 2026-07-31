@@ -42,6 +42,8 @@ public class Controller {
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public void run() {
+        frame.hexKeyField.setText("");
+
         identity = elGamalEncryption.generateKeyPair();
 
         loadAddresses();
@@ -241,6 +243,7 @@ public class Controller {
                     new Consumer<Throwable>() {
                         @Override
                         public void accept(Throwable t) {
+                            t.printStackTrace();
                             SwingUtilities.invokeLater(() -> {
                                 frame.messages.append("Error: " + t.getMessage() + "\n");
                             });
