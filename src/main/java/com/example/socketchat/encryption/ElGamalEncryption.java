@@ -14,8 +14,8 @@ public final class ElGamalEncryption {
 
     private static final BigInteger TWO = BigInteger.TWO;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-    public static final BigInteger DEFAULT_P = BigInteger.probablePrime(255, SECURE_RANDOM);
-    public static final BigInteger DEFAULT_G = randomValue(DEFAULT_P);
+    public static final BigInteger DEFAULT_P = TWO.pow(255).subtract(BigInteger.valueOf(19));
+    public static final BigInteger DEFAULT_G = TWO;
 
     private static final int AES_KEY_BYTES = 16;
 
