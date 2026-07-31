@@ -13,11 +13,18 @@ import java.util.HexFormat;
 @Singleton
 public class GcmEncryption {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final int IV_BYTES = 12;
+
+    public String generateKey() {
+        byte[] key = new byte[16];
+        SECURE_RANDOM.nextBytes(key);
+        return HexFormat.of().formatHex(key);
+    }
 
     public byte[] encrypt(String plainText, String hexKey) throws Exception {
         byte[] key = fromHex(hexKey);
 
-        byte[] iv = new byte[12];
+        byte[] iv = new byte[IV_BYTES];
         SECURE_RANDOM.nextBytes(iv);
 
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
@@ -38,8 +45,11 @@ public class GcmEncryption {
 
     public String decrypt(byte[] encrypted, String hexKey) throws Exception {
         byte[] key = fromHex(hexKey);
+        if (encrypted == null || encrypted.length < IV_BYTES + 16) {
+            throw new IllegalArgumentException("Invalid AES-GCM message");
+        }
 
-        byte[] iv = Arrays.copyOfRange(encrypted, 0, 12);
+        byte[] iv = Arrays.copyOfRange(encrypted, 0, IV_BYTES);
         byte[] ciphertext = Arrays.copyOfRange(encrypted, iv.length, encrypted.length);
 
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");

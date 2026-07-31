@@ -2,205 +2,199 @@ package com.example.socketchat.encryption;
 
 import com.google.inject.Singleton;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.HexFormat;
 
 @Singleton
 public final class ElGamalEncryption {
 
     private static final BigInteger TWO = BigInteger.TWO;
-    private static final BigInteger P = TWO.pow(255).subtract(BigInteger.valueOf(19));
-    private static final BigInteger G = TWO;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    public static final BigInteger DEFAULT_P = BigInteger.probablePrime(255, SECURE_RANDOM);
+    public static final BigInteger DEFAULT_G = randomValue(DEFAULT_P);
 
-    private static final int ELGAMAL_BYTES = (P.bitLength() + 7) / 8;
-    private static final int IV_BYTES = 12;
-    private static final int GCM_TAG_BYTES = 16;
-    private static final int MAX_PACKET_PAYLOAD_BYTES = Byte.MAX_VALUE;
+    private static final int AES_KEY_BYTES = 16;
 
     public KeyPair generateKeyPair() {
-        BigInteger privateValue = randomExponent();
-        BigInteger publicValue = G.modPow(privateValue, P);
-        return new KeyPair(
-                new PublicKey(publicValue),
-                new PrivateKey(privateValue)
+        return calculate(
+                DEFAULT_G,
+                DEFAULT_P,
+                randomExponent(DEFAULT_P),
+                randomExponent(DEFAULT_P)
         );
     }
 
-    public byte[] encodePublicKey(PublicKey publicKey) {
-        return encodeElGamalValue(publicKey.getValue());
+    public KeyPair calculate(BigInteger g,
+                             BigInteger p,
+                             BigInteger x,
+                             BigInteger k) {
+        validateParameters(g, p);
+        validateExponent("x", x, p);
+        validateExponent("k", k, p);
+        BigInteger y = g.modPow(x, p);
+        BigInteger ephemeral = g.modPow(k, p);
+        validatePublicValue("y", y, p);
+        validatePublicValue("ephemeral", ephemeral, p);
+        return new KeyPair(g, p, x, k, y, ephemeral);
     }
 
-    public PublicKey decodePublicKey(byte[] encoded) {
-        if (encoded == null || encoded.length != ELGAMAL_BYTES) {
-            throw new IllegalArgumentException("Invalid ElGamal public key");
-        }
-
-        BigInteger value = new BigInteger(1, encoded);
-        validatePublicKeyValue(value);
-        return new PublicKey(value);
+    public BigInteger randomExponent(BigInteger p) {
+        return randomValue(p);
     }
 
-    public byte[] encrypt(String plainText, byte[] receiverPublicKey) throws Exception {
-        return encrypt(plainText, decodePublicKey(receiverPublicKey));
-    }
-
-    public byte[] encrypt(String plainText, PublicKey receiverPublicKey) throws Exception {
-        KeyPair ephemeralKeyPair = generateKeyPair();
-        byte[] ephemeralPublic = encodeElGamalValue(ephemeralKeyPair.getPublic().getValue());
-        byte[] key = toAesKey(receiverPublicKey.getValue().modPow(ephemeralKeyPair.getPrivate().getValue(), P));
-        byte[] iv = new byte[IV_BYTES];
-        SECURE_RANDOM.nextBytes(iv);
-
-        byte[] plaintext = plainText.getBytes(StandardCharsets.UTF_8);
-        int maximumPlaintextBytes = MAX_PACKET_PAYLOAD_BYTES
-                - 1 - ephemeralPublic.length - IV_BYTES - GCM_TAG_BYTES;
-        if (plaintext.length > maximumPlaintextBytes) {
-            throw new IllegalArgumentException(
-                    "Encrypted message must be at most "
-                            + maximumPlaintextBytes + " UTF-8 bytes");
+    private static BigInteger randomValue(BigInteger p) {
+        if (p == null || p.compareTo(BigInteger.valueOf(5)) < 0) {
+            throw new IllegalArgumentException("P must be at least 5");
         }
-
-        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-        cipher.init(
-                Cipher.ENCRYPT_MODE,
-                new SecretKeySpec(key, "AES"),
-                new GCMParameterSpec(GCM_TAG_BYTES * 8, iv)
-        );
-        cipher.updateAAD(header(ephemeralPublic));
-
-        byte[] ciphertext = cipher.doFinal(plaintext);
-
-        return ByteBuffer.allocate(1 + ephemeralPublic.length + IV_BYTES + ciphertext.length)
-                .put((byte) ephemeralPublic.length)
-                .put(ephemeralPublic)
-                .put(iv)
-                .put(ciphertext)
-                .array();
-    }
-
-    public String decrypt(byte[] encrypted, PrivateKey receiverPrivateKey) throws Exception {
-        if (encrypted == null || encrypted.length < 1 + ELGAMAL_BYTES
-                + IV_BYTES + GCM_TAG_BYTES) {
-            throw new IllegalArgumentException("Invalid encrypted message");
-        }
-        if (encrypted.length > MAX_PACKET_PAYLOAD_BYTES) {
-            throw new IllegalArgumentException("Encrypted message is too large");
-        }
-
-        ByteBuffer input = ByteBuffer.wrap(encrypted);
-
-        int publicKeyLength = Byte.toUnsignedInt(input.get());
-        if (publicKeyLength != ELGAMAL_BYTES
-                || input.remaining() < publicKeyLength + IV_BYTES + GCM_TAG_BYTES) {
-            throw new IllegalArgumentException("Invalid encrypted message");
-        }
-
-        byte[] ephemeralPublic = new byte[publicKeyLength];
-        input.get(ephemeralPublic);
-        byte[] iv = new byte[IV_BYTES];
-        input.get(iv);
-        byte[] ciphertext = new byte[input.remaining()];
-        input.get(ciphertext);
-
-        BigInteger ephemeralValue = new BigInteger(1, ephemeralPublic);
-        validatePublicKeyValue(ephemeralValue);
-        byte[] key = toAesKey(ephemeralValue.modPow(receiverPrivateKey.getValue(), P));
-
-        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-        cipher.init(
-                Cipher.DECRYPT_MODE,
-                new SecretKeySpec(key, "AES"),
-                new GCMParameterSpec(GCM_TAG_BYTES * 8, iv)
-        );
-        cipher.updateAAD(header(ephemeralPublic));
-
-        byte[] plaintext = cipher.doFinal(ciphertext);
-
-        return new String(plaintext, StandardCharsets.UTF_8);
-    }
-
-    private static BigInteger randomExponent() {
-        BigInteger maximum = P.subtract(TWO);
+        BigInteger maximum = p.subtract(TWO);
         BigInteger value;
         do {
-            value = new BigInteger(P.bitLength(), SECURE_RANDOM);
+            value = new BigInteger(p.bitLength(), SECURE_RANDOM);
         } while (value.compareTo(TWO) < 0 || value.compareTo(maximum) > 0);
         return value;
     }
 
-    private static void validatePublicKeyValue(BigInteger value) {
-        if (value.compareTo(TWO) < 0 || value.compareTo(P.subtract(TWO)) > 0) {
-            throw new IllegalArgumentException("Invalid ElGamal public key");
+    public String toEncryptionKey(PublicKey receiver, BigInteger k) {
+        validateExponent("k", k, receiver.p());
+        return toAesHexKey(receiver.y().modPow(k, receiver.p()));
+    }
+
+    public String toDecryptionKey(PublicKey sender,
+                                  BigInteger x,
+                                  BigInteger localP,
+                                  BigInteger localG) {
+        if (!localP.equals(sender.p()) || !localG.equals(sender.g())) {
+            throw new IllegalArgumentException("ElGamal G and P do not match the sender");
+        }
+        validateExponent("x", x, localP);
+        return toAesHexKey(sender.ephemeral().modPow(x, localP));
+    }
+
+    public byte[] encodePublicKey(KeyPair keyPair) {
+        return encodePublicKey(keyPair.publicKey());
+    }
+
+    public byte[] encodePublicKey(PublicKey publicKey) {
+        validatePublicKey(publicKey);
+        byte[][] values = {
+                unsigned(publicKey.g()), unsigned(publicKey.p()),
+                unsigned(publicKey.y()), unsigned(publicKey.ephemeral())
+        };
+        int size = 4;
+        for (byte[] value : values) {
+            if (value.length > 255) {
+                throw new IllegalArgumentException("ElGamal value is too large");
+            }
+            size += value.length;
+        }
+        if (size > 255) {
+            throw new IllegalArgumentException("ElGamal public publicKey is too large");
+        }
+
+        ByteBuffer output = ByteBuffer.allocate(size);
+        for (byte[] value : values) {
+            output.put((byte) value.length).put(value);
+        }
+        return output.array();
+    }
+
+    public PublicKey decodePublicKey(byte[] encoded) {
+        if (encoded == null) {
+            throw new IllegalArgumentException("Missing ElGamal public data");
+        }
+
+        ByteBuffer input = ByteBuffer.wrap(encoded);
+        BigInteger g = readValue(input);
+        BigInteger p = readValue(input);
+        BigInteger y = readValue(input);
+        BigInteger ephemeral = readValue(input);
+        PublicKey data = new PublicKey(g, p, y, ephemeral);
+        validatePublicKey(data);
+        return data;
+    }
+
+    private static BigInteger readValue(ByteBuffer input) {
+        if (!input.hasRemaining()) {
+            throw new IllegalArgumentException("Incomplete ElGamal public data");
+        }
+        int length = Byte.toUnsignedInt(input.get());
+        if (length == 0 || input.remaining() < length) {
+            throw new IllegalArgumentException("Invalid ElGamal value length");
+        }
+        byte[] value = new byte[length];
+        input.get(value);
+        return new BigInteger(1, value);
+    }
+
+    private static String toAesHexKey(BigInteger sharedSecret) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(unsigned(sharedSecret));
+            return HexFormat.of().formatHex(Arrays.copyOf(digest, AES_KEY_BYTES));
+        } catch (Exception ex) {
+            throw new IllegalStateException("Could not derive AES key", ex);
         }
     }
 
-    private static byte[] toAesKey(BigInteger sharedSecret) throws Exception {
-        return MessageDigest.getInstance("SHA-256")
-                .digest(encodeElGamalValue(sharedSecret));
+    private static byte[] unsigned(BigInteger value) {
+        byte[] encoded = value.toByteArray();
+        return encoded.length > 1 && encoded[0] == 0
+                ? Arrays.copyOfRange(encoded, 1, encoded.length)
+                : encoded;
     }
 
-    private static byte[] encodeElGamalValue(BigInteger value) {
-        byte[] source = value.toByteArray();
-        byte[] result = new byte[ELGAMAL_BYTES];
-        int sourceOffset = source.length > ELGAMAL_BYTES ? 1 : 0;
-        int length = source.length - sourceOffset;
-        System.arraycopy(source, sourceOffset, result, result.length - length, length);
-        return result;
-    }
-
-    private static byte[] header(byte[] ephemeralPublic) {
-        return ByteBuffer.allocate(1 + ephemeralPublic.length)
-                .put((byte) ephemeralPublic.length)
-                .put(ephemeralPublic)
-                .array();
-    }
-
-    public static final class PublicKey {
-        private final BigInteger value;
-
-        private PublicKey(BigInteger value) {
-            this.value = value;
+    private static void validatePublicKey(PublicKey publicKey) {
+        if (publicKey == null) {
+            throw new IllegalArgumentException("Missing ElGamal public publicKey");
         }
+        validateParameters(publicKey.g(), publicKey.p());
+        validatePublicValue("y", publicKey.y(), publicKey.p());
+        validatePublicValue("ephemeral", publicKey.ephemeral(), publicKey.p());
+    }
 
-        public BigInteger getValue() {
-            return value;
+    private static void validateParameters(BigInteger g, BigInteger p) {
+        if (p == null || !p.isProbablePrime(80)) {
+            throw new IllegalArgumentException("P must be prime");
+        }
+        validatePublicValue("G", g, p);
+    }
+
+    private static void validateExponent(String name, BigInteger value, BigInteger p) {
+        if (value == null || value.compareTo(TWO) < 0
+                || value.compareTo(p.subtract(TWO)) > 0) {
+            throw new IllegalArgumentException(name + " must be between 2 and P - 2");
         }
     }
 
-    public static final class PrivateKey {
-        private final BigInteger value;
-
-        private PrivateKey(BigInteger value) {
-            this.value = value;
-        }
-
-        public BigInteger getValue() {
-            return value;
+    private static void validatePublicValue(String name, BigInteger value, BigInteger p) {
+        if (value == null || value.compareTo(TWO) < 0
+                || value.compareTo(p.subtract(TWO)) > 0) {
+            throw new IllegalArgumentException(name + " must be between 2 and P - 2");
         }
     }
 
-    public static final class KeyPair {
-        private final PublicKey publicKey;
-        private final PrivateKey privateKey;
+    public record PublicKey(
+            BigInteger g,
+            BigInteger p,
+            BigInteger y,
+            BigInteger ephemeral
+    ) {
+    }
 
-        private KeyPair(PublicKey publicKey, PrivateKey privateKey) {
-            this.publicKey = publicKey;
-            this.privateKey = privateKey;
-        }
-
-        public PublicKey getPublic() {
-            return publicKey;
-        }
-
-        public PrivateKey getPrivate() {
-            return privateKey;
+    public record KeyPair(
+            BigInteger g,
+            BigInteger p,
+            BigInteger x,
+            BigInteger k,
+            BigInteger y,
+            BigInteger ephemeral
+    ) {
+        public PublicKey publicKey() {
+            return new PublicKey(g, p, y, ephemeral);
         }
     }
 }

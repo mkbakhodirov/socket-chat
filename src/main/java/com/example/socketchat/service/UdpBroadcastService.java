@@ -2,11 +2,13 @@ package com.example.socketchat.service;
 
 import com.example.socketchat.dto.Message;
 import com.example.socketchat.encryption.ElGamalEncryption;
+import com.example.socketchat.encryption.GcmEncryption;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,12 +22,13 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
     private Consumer<Throwable> error;
     private DatagramSocket socket;
     private volatile boolean running;
-    private final ElGamalEncryption elGamalEncryption = new ElGamalEncryption();
+    private final GcmEncryption gcmEncryption = new GcmEncryption();
     private final byte[] localPublicKey;
 
     public static final byte HELLO = 0x00;
     public static final byte PLAIN_MESSAGE = 0x01;
     public static final byte ENCRYPTED_MESSAGE = 0x02;
+    public static final byte ELGAMAL_ENCRYPTED_MESSAGE = 0x03;
 
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -44,6 +47,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
             if (!running) {
                 return;
             }
+            System.out.println("Local public key: " + Arrays.toString(localPublicKey));
             send(HELLO, this.localPublicKey, broadcastAddr);
         }, 3, 30, TimeUnit.SECONDS);
     }
@@ -64,17 +68,18 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
                 }
                 byte[] data = new byte[len];
                 System.arraycopy(dp.getData(), ofs, data, 0, len);
+                System.out.println("Received data from " + addr + ": " + Arrays.toString(data));
 
                 byte type = data[0];
                 int size = 0;
                 byte[] payload = new byte[size];
                 if (data.length > 1) {
-                    size = data[1];
+                    size = Byte.toUnsignedInt(data[1]);
                     payload = new byte[size];
                     System.arraycopy(data, 2, payload, 0, size);
                 }
                 publish(new Message(addr, type, payload));
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 if (running) {
                     publish(ex);
                 }
@@ -90,6 +95,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
             if (chunk instanceof Message message) {
                 listener.accept(message);
             } else if (chunk instanceof Throwable throwable) {
+                throwable.printStackTrace();
                 error.accept(throwable);
             }
         }
@@ -120,19 +126,14 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         send(PLAIN_MESSAGE, message.getBytes(StandardCharsets.UTF_8), sa);
     }
 
-    public void sendEncrypted(String message, byte[] receiverPublicKey, SocketAddress sa) {
-        if (!running) {
-            error.accept(new IllegalStateException("UDP is OFFLINE!!!"));
-            return;
-        }
-        byte[] payload;
+    public void sendEncrypted(String message, String hexKey, boolean elGamal, SocketAddress address) {
         try {
-            payload = elGamalEncryption.encrypt(message, receiverPublicKey);
+            byte[] payload = gcmEncryption.encrypt(message, hexKey);
+            send(elGamal ? ELGAMAL_ENCRYPTED_MESSAGE
+                    : ENCRYPTED_MESSAGE, payload, address);
         } catch (Exception ex) {
-            error.accept(ex);
-            return;
+            publish(ex);
         }
-        send(ENCRYPTED_MESSAGE, payload, sa);
     }
 
     private void send(byte type, byte[] payload, SocketAddress sa) {
@@ -144,8 +145,8 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         DatagramPacket dp = new DatagramPacket(data, data.length, sa);
         try {
             socket.send(dp);
-        } catch (IOException ex) {
-            error.accept(ex);
+        } catch (Exception ex) {
+            publish(ex);
         }
     }
 }

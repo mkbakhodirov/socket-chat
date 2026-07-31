@@ -29,6 +29,23 @@ public class MainFrame extends javax.swing.JFrame {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
+        elGamalContentPanel = new javax.swing.JPanel();
+        elGamalFieldsPanel = new javax.swing.JPanel();
+        elGamalGLabel = new javax.swing.JLabel();
+        elGamalGField = new javax.swing.JTextField();
+        elGamalPLabel = new javax.swing.JLabel();
+        elGamalPField = new javax.swing.JTextField();
+        elGamalXLabel = new javax.swing.JLabel();
+        elGamalXField = new javax.swing.JTextField();
+        elGamalKLabel = new javax.swing.JLabel();
+        elGamalKField = new javax.swing.JTextField();
+        elGamalYLabel = new javax.swing.JLabel();
+        elGamalYField = new javax.swing.JTextField();
+        elGamalEphemeralLabel = new javax.swing.JLabel();
+        elGamalEphemeralField = new javax.swing.JTextField();
+        elGamalActionsPanel = new javax.swing.JPanel();
+        elGamalRandomButton = new javax.swing.JButton();
+        elGamalCalculateButton = new javax.swing.JButton();
         headerPanel = new javax.swing.JPanel();
         titleLabel = new javax.swing.JLabel();
         controlsPanel = new javax.swing.JPanel();
@@ -40,8 +57,11 @@ public class MainFrame extends javax.swing.JFrame {
         startCheck = new javax.swing.JCheckBox();
         spacerLabel = new javax.swing.JLabel();
         statusLabel = new javax.swing.JLabel();
-        publicKeyLabel = new javax.swing.JLabel();
-        publicKeyField = new javax.swing.JTextField();
+        encryptionCheck = new javax.swing.JCheckBox();
+        hexKeyLabel = new javax.swing.JLabel();
+        hexKeyField = new javax.swing.JTextField();
+        elGamalCheck = new javax.swing.JCheckBox();
+        viewElGamalButton = new javax.swing.JButton();
         centerPanel = new javax.swing.JPanel();
         addressPanel = new javax.swing.JPanel();
         addressHeaderPanel = new javax.swing.JPanel();
@@ -58,6 +78,50 @@ public class MainFrame extends javax.swing.JFrame {
         messageInputPanel = new javax.swing.JPanel();
         inputField = new javax.swing.JTextField();
         sendButton = new javax.swing.JButton();
+
+        elGamalContentPanel.setLayout(new java.awt.BorderLayout(0, 10));
+
+        elGamalFieldsPanel.setLayout(new java.awt.GridLayout(0, 2, 8, 8));
+
+        elGamalGLabel.setText("G");
+        elGamalFieldsPanel.add(elGamalGLabel);
+        elGamalFieldsPanel.add(elGamalGField);
+
+        elGamalPLabel.setText("P");
+        elGamalFieldsPanel.add(elGamalPLabel);
+        elGamalFieldsPanel.add(elGamalPField);
+
+        elGamalXLabel.setText("x (private identity)");
+        elGamalFieldsPanel.add(elGamalXLabel);
+        elGamalFieldsPanel.add(elGamalXField);
+
+        elGamalKLabel.setText("k (private ephemeral)");
+        elGamalFieldsPanel.add(elGamalKLabel);
+        elGamalFieldsPanel.add(elGamalKField);
+
+        elGamalYLabel.setText("y = G^x mod P");
+        elGamalFieldsPanel.add(elGamalYLabel);
+
+        elGamalYField.setEditable(false);
+        elGamalFieldsPanel.add(elGamalYField);
+
+        elGamalEphemeralLabel.setText("ephemeral = G^k mod P");
+        elGamalFieldsPanel.add(elGamalEphemeralLabel);
+
+        elGamalEphemeralField.setEditable(false);
+        elGamalFieldsPanel.add(elGamalEphemeralField);
+
+        elGamalContentPanel.add(elGamalFieldsPanel, java.awt.BorderLayout.CENTER);
+
+        elGamalActionsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
+
+        elGamalRandomButton.setText("Random x and k");
+        elGamalActionsPanel.add(elGamalRandomButton);
+
+        elGamalCalculateButton.setText("Calculate");
+        elGamalActionsPanel.add(elGamalCalculateButton);
+
+        elGamalContentPanel.add(elGamalActionsPanel, java.awt.BorderLayout.SOUTH);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("UDP Broadcast Chat");
@@ -137,23 +201,51 @@ public class MainFrame extends javax.swing.JFrame {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         controlsPanel.add(statusLabel, gridBagConstraints);
 
-        publicKeyLabel.setText("MY PUBLIC KEY");
+        encryptionCheck.setText("Encryption");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
-        controlsPanel.add(publicKeyLabel, gridBagConstraints);
+        controlsPanel.add(encryptionCheck, gridBagConstraints);
 
-        publicKeyField.setEditable(false);
-        publicKeyField.setText("");
+        hexKeyLabel.setText("HEX KEY");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
+        controlsPanel.add(hexKeyLabel, gridBagConstraints);
+
+        hexKeyField.setEditable(false);
+        hexKeyField.setText("00112233445566778899aabbccddeeff");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 14);
-        controlsPanel.add(publicKeyField, gridBagConstraints);
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
+        controlsPanel.add(hexKeyField, gridBagConstraints);
+
+        elGamalCheck.setText("El Gamal Key Exchange");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
+        controlsPanel.add(elGamalCheck, gridBagConstraints);
+
+        viewElGamalButton.setText("<html><u>View&nbsp;El&nbsp;Gamal</u></html>");
+        viewElGamalButton.setBorderPainted(false);
+        viewElGamalButton.setContentAreaFilled(false);
+        viewElGamalButton.setFocusPainted(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
+        controlsPanel.add(viewElGamalButton, gridBagConstraints);
 
         headerPanel.add(controlsPanel, java.awt.BorderLayout.CENTER);
 
@@ -264,9 +356,28 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel centerPanel;
     private javax.swing.JLabel clearLabel;
     private javax.swing.JPanel controlsPanel;
+    private javax.swing.JPanel elGamalActionsPanel;
+    public javax.swing.JButton elGamalCalculateButton;
+    public javax.swing.JCheckBox elGamalCheck;
+    public javax.swing.JPanel elGamalContentPanel;
+    public javax.swing.JTextField elGamalEphemeralField;
+    private javax.swing.JLabel elGamalEphemeralLabel;
+    private javax.swing.JPanel elGamalFieldsPanel;
+    public javax.swing.JTextField elGamalGField;
+    private javax.swing.JLabel elGamalGLabel;
+    public javax.swing.JTextField elGamalKField;
+    private javax.swing.JLabel elGamalKLabel;
+    public javax.swing.JTextField elGamalPField;
+    private javax.swing.JLabel elGamalPLabel;
+    public javax.swing.JButton elGamalRandomButton;
+    public javax.swing.JTextField elGamalXField;
+    private javax.swing.JLabel elGamalXLabel;
+    public javax.swing.JTextField elGamalYField;
+    private javax.swing.JLabel elGamalYLabel;
+    public javax.swing.JCheckBox encryptionCheck;
     private javax.swing.JPanel headerPanel;
-    public javax.swing.JTextField publicKeyField;
-    private javax.swing.JLabel publicKeyLabel;
+    public javax.swing.JTextField hexKeyField;
+    public javax.swing.JLabel hexKeyLabel;
     public javax.swing.JTextField inputField;
     private javax.swing.JPanel messageHeaderPanel;
     private javax.swing.JPanel messageInputPanel;
@@ -282,5 +393,6 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel startLabel;
     public javax.swing.JLabel statusLabel;
     private javax.swing.JLabel titleLabel;
+    public javax.swing.JButton viewElGamalButton;
     // End of variables declaration//GEN-END:variables
 }

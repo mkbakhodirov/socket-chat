@@ -4,8 +4,9 @@
  */
 package com.example.socketchat.model;
 
+import com.example.socketchat.encryption.ElGamalEncryption.PublicKey;
+
 import java.time.LocalTime;
-import java.util.Arrays;
 
 /**
  *
@@ -17,9 +18,9 @@ public class User {
 
     String address;
 
-    byte[] publicKey;
+    PublicKey publicKey;
 
-    public User(LocalTime time, String address, byte[] publicKey) {
+    public User(LocalTime time, String address, PublicKey publicKey) {
         this.time = time;
         this.address = address;
         this.publicKey = publicKey;
@@ -37,21 +38,16 @@ public class User {
         return address;
     }
 
-    public byte[] getPublicKey() {
+    public PublicKey getPublicKey() {
         return publicKey;
     }
 
-    public void setPublicKey(byte[] publicKey) {
+    public void setPublicKey(PublicKey publicKey) {
         this.publicKey = publicKey;
-    }
-
-    public boolean hasPublicKey(byte[] publicKey) {
-        return Arrays.equals(this.publicKey, publicKey);
     }
 
     @Override
     public String toString() {
         return address;
     }
-
 }
