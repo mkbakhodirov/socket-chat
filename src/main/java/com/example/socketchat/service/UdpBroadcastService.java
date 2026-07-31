@@ -49,7 +49,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
             }
             System.out.println("Local public key: " + Arrays.toString(localPublicKey));
             send(HELLO, this.localPublicKey, broadcastAddr);
-        }, 3, 30, TimeUnit.SECONDS);
+        }, 3, 3, TimeUnit.SECONDS);
     }
 
     @Override
