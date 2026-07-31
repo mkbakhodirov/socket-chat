@@ -287,8 +287,6 @@ public class Controller {
             } else if (!frame.elGamalCheck.isSelected()) {
                 udpService.sendEncrypted(text, frame.hexKeyField.getText().trim(), false, isa);
             } else {
-//                String key = elGamalEncryption.toEncryptionKey(user.getPublicKey(), identity.k());
-//                frame.hexKeyField.setText(key);
                 udpService.sendEncrypted(text, frame.hexKeyField.getText().trim(), true, isa);
             }
             frame.inputField.setText("");
@@ -318,6 +316,10 @@ public class Controller {
                         if (u.getAddress().equals(user.getAddress())) {
                             u.setTime(user.getTime());
                             u.setPublicKey(user.getPublicKey());
+                            if (frame.elGamalCheck.isSelected()
+                                    && frame.addressList.getSelectedValue() == u) {
+                                showKeyForSelectedUser();
+                            }
                             return;
                         }
                     }
@@ -346,10 +348,24 @@ public class Controller {
             case UdpBroadcastService.ENCRYPTED_MESSAGE, UdpBroadcastService.ELGAMAL_ENCRYPTED_MESSAGE: {
                 String text;
                 try {
-                    text = gcmEncryption.decrypt(message.getPayload(), frame.hexKeyField.getText().trim());
-                } catch (Throwable t) {
+                    String key;
+                    if (message.getType() == UdpBroadcastService.ELGAMAL_ENCRYPTED_MESSAGE) {
+                        User sender = findUser(message.getAddress());
+                        if (sender == null) {
+                            throw new IllegalStateException(
+                                    "Cannot decrypt ElGamal message: sender public key is not available"
+                            );
+                        }
+                        key = elGamalEncryption.toDecryptionKey(
+                                sender.getPublicKey(), identity.x(), identity.p(), identity.g()
+                        );
+                    } else {
+                        key = frame.hexKeyField.getText().trim();
+                    }
+                    text = gcmEncryption.decrypt(message.getPayload(), key);
+                } catch (Exception ex) {
                     SwingUtilities.invokeLater(() -> {
-                        frame.messages.append("Error: " + t.getMessage() + "\n");
+                        frame.messages.append("Error decrypting message: " + ex.getMessage() + "\n");
                     });
                     return;
                 }
@@ -365,6 +381,17 @@ public class Controller {
                 break;
             }
         }
+    }
+
+    private User findUser(String address) {
+        UserModel model = (UserModel) frame.addressList.getModel();
+        for (int i = 0; i < model.getSize(); i++) {
+            User user = model.getElementAt(i);
+            if (user.getAddress().equals(address)) {
+                return user;
+            }
+        }
+        return null;
     }
 //
 //    private void appendMessage(Message message) {

@@ -1,11 +1,9 @@
 package com.example.socketchat.service;
 
 import com.example.socketchat.dto.Message;
-import com.example.socketchat.encryption.ElGamalEncryption;
 import com.example.socketchat.encryption.GcmEncryption;
 
 import javax.swing.*;
-import java.io.IOException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -139,6 +137,10 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
     }
 
     private void send(byte type, byte[] payload, SocketAddress sa) {
+        if (payload.length > 255) {
+            error.accept(new IllegalArgumentException("UDP payload must not exceed 255 bytes"));
+            return;
+        }
         byte[] data = new byte[2 + payload.length];
         data[0] = type;
         data[1] = (byte) payload.length;
