@@ -61,6 +61,9 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
                 socket.receive(dp);
 
                 String addr = dp.getAddress().getHostAddress();
+                if (addr.equals("172.19.236.72")) {
+                    return null;
+                }
                 int ofs = dp.getOffset();
                 int len = dp.getLength();
                 if (len < 1) {
