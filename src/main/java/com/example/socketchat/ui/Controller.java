@@ -338,8 +338,7 @@ public class Controller {
                         if (u.getAddress().equals(user.getAddress())) {
                             u.setTime(user.getTime());
                             u.setPublicKey(user.getPublicKey());
-                            if (frame.elGamalCheck.isSelected()
-                                    && frame.addressList.getSelectedValue() == u) {
+                            if (frame.elGamalCheck.isSelected() && frame.addressList.getSelectedValue() == u) {
                                 showKeyForSelectedUser();
                             }
                             return;
@@ -370,10 +369,9 @@ public class Controller {
             case UdpBroadcastService.ENCRYPTED_MESSAGE, UdpBroadcastService.ELGAMAL_ENCRYPTED_MESSAGE: {
                 String text;
                 try {
-                    text = gcmEncryption.decrypt(
-                            message.getPayload(), frame.receiveHexKeyField.getText().trim()
-                    );
+                    text = gcmEncryption.decrypt(message.getPayload(), frame.receiveHexKeyField.getText().trim());
                 } catch (Exception ex) {
+                    ex.printStackTrace();
                     SwingUtilities.invokeLater(() -> {
                         frame.messages.append("Error decrypting message: " + ex.getMessage() + "\n");
                     });
@@ -392,104 +390,4 @@ public class Controller {
             }
         }
     }
-
-//
-//    private void appendMessage(Message message) {
-//        switch (message.getType()) {
-//            case UdpBroadcastService.HELLO -> receiveHello(message);
-//            case UdpBroadcastService.PLAIN_MESSAGE ->
-//                    displayMessage(message, new String(message.getPayload(),
-//                            StandardCharsets.UTF_8));
-//            case UdpBroadcastService.ENCRYPTED_MESSAGE ->
-//                    decryptWithManualKey(message);
-//            case UdpBroadcastService.ELGAMAL_ENCRYPTED_MESSAGE ->
-//                    decryptWithElGamal(message);
-//            default -> frame.messages.append(
-//                    "Ignored unknown message type\n");
-//        }
-//    }
-//
-//    private void receiveHello(Message message) {
-//        final PublicKey publicKey;
-//        try {
-//            publicKey = elGamalEncryption.decodePublicKey(
-//                    message.getPayload());
-//        } catch (RuntimeException ex) {
-//            frame.messages.append("Ignored invalid ElGamal data from "
-//                    + message.getAddress() + "\n");
-//            return;
-//        }
-//
-//        UserModel model = (UserModel) frame.addressList.getModel();
-//        User existing = findUser(message.getAddress());
-//        if (existing == null) {
-//            model.addElement(new User(LocalTime.now(),
-//                    message.getAddress(), publicKey));
-//        } else {
-//            existing.setTime(LocalTime.now());
-//            existing.setPublicKey(publicKey);
-//        }
-//        if (frame.elGamalCheck.isSelected()) {
-//            showDerivedKeyForSelectedUser();
-//        }
-//    }
-//
-//    private void decryptWithManualKey(Message message) {
-//        try {
-//            String key = frame.elGamalCheck.isSelected()
-//                    ? manualHexKey : frame.hexKeyField.getText().trim();
-//            displayMessage(message,
-//                    gcmEncryption.decrypt(message.getPayload(), key));
-//        } catch (Exception ex) {
-//            showReceiveError(ex);
-//        }
-//    }
-//
-//    private void decryptWithElGamal(Message message) {
-//        User sender = findUser(message.getAddress());
-//        if (sender == null) {
-//            showReceiveError(new IllegalStateException(
-//                    "No ElGamal identity is known for "
-//                            + message.getAddress()));
-//            return;
-//        }
-//        try {
-//            String key = elGamalEncryption.toDecryptionKey(
-//                    sender.getPublicKey(), identity.x(),
-//                    identity.p(), identity.g());
-//            displayMessage(message,
-//                    gcmEncryption.decrypt(message.getPayload(), key));
-//        } catch (Exception ex) {
-//            showReceiveError(ex);
-//        }
-//    }
-//
-//    private User findUser(String address) {
-//        Enumeration<User> users =
-//                ((UserModel) frame.addressList.getModel()).elements();
-//        while (users.hasMoreElements()) {
-//            User user = users.nextElement();
-//            if (user.getAddress().equals(address)) {
-//                return user;
-//            }
-//        }
-//        return null;
-//    }
-//
-//    private void displayMessage(Message message, String text) {
-//        ChatMessage chatMessage = new ChatMessage(LocalTime.now(),
-//                "<-", message.getAddress(), text);
-//        frame.messages.append("%s  %s  %s  %s%n".formatted(
-//                timeFormat.format(chatMessage.time()),
-//                chatMessage.direction(),
-//                chatMessage.sender(),
-//                chatMessage.text()));
-//        frame.messages.setCaretPosition(
-//                frame.messages.getDocument().getLength());
-//    }
-//
-//    private void showReceiveError(Throwable throwable) {
-//        frame.messages.append("Error decrypting message: "
-//                + throwable.getMessage() + "\n");
-//    }
 }

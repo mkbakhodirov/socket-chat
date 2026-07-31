@@ -65,13 +65,13 @@ public final class ElGamalEncryption {
 
     public String toDecryptionKey(PublicKey sender,
                                   BigInteger x,
-                                  BigInteger localP,
-                                  BigInteger localG) {
-        if (!localP.equals(sender.p()) || !localG.equals(sender.g())) {
+                                  BigInteger p,
+                                  BigInteger g) {
+        if (!p.equals(sender.p()) || !g.equals(sender.g())) {
             throw new IllegalArgumentException("ElGamal G and P do not match the sender");
         }
-        validateExponent("x", x, localP);
-        return toAesHexKey(sender.ephemeral().modPow(x, localP));
+        validateExponent("x", x, p);
+        return toAesHexKey(sender.ephemeral().modPow(x, p));
     }
 
     public byte[] encodePublicKey(KeyPair keyPair) {
