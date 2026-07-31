@@ -29,6 +29,27 @@ public class MainFrame extends javax.swing.JFrame {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
+        diffieHellmanContentPanel = new javax.swing.JPanel();
+        diffieHellmanFieldsPanel = new javax.swing.JPanel();
+        diffieHellmanGLabel = new javax.swing.JLabel();
+        diffieHellmanGField = new javax.swing.JTextField();
+        diffieHellmanPLabel = new javax.swing.JLabel();
+        diffieHellmanPField = new javax.swing.JTextField();
+        diffieHellmanXLabel = new javax.swing.JLabel();
+        diffieHellmanXField = new javax.swing.JTextField();
+        diffieHellmanALabel = new javax.swing.JLabel();
+        diffieHellmanAField = new javax.swing.JTextField();
+        selectedUserDiffieHellmanGLabel = new javax.swing.JLabel();
+        selectedUserDiffieHellmanGField = new javax.swing.JTextField();
+        selectedUserDiffieHellmanPLabel = new javax.swing.JLabel();
+        selectedUserDiffieHellmanPField = new javax.swing.JTextField();
+        selectedUserDiffieHellmanBLabel = new javax.swing.JLabel();
+        selectedUserDiffieHellmanBField = new javax.swing.JTextField();
+        diffieHellmanKLabel = new javax.swing.JLabel();
+        diffieHellmanKField = new javax.swing.JTextField();
+        diffieHellmanActionsPanel = new javax.swing.JPanel();
+        diffieHellmanRandomButton = new javax.swing.JButton();
+        diffieHellmanCalculateButton = new javax.swing.JButton();
         elGamalContentPanel = new javax.swing.JPanel();
         elGamalFieldsPanel = new javax.swing.JPanel();
         elGamalGLabel = new javax.swing.JLabel();
@@ -72,6 +93,8 @@ public class MainFrame extends javax.swing.JFrame {
         receiveHexKeyField = new javax.swing.JTextField();
         elGamalCheck = new javax.swing.JCheckBox();
         viewElGamalButton = new javax.swing.JButton();
+        diffieHellmanCheck = new javax.swing.JCheckBox();
+        viewDiffieHellmanButton = new javax.swing.JButton();
         centerPanel = new javax.swing.JPanel();
         addressPanel = new javax.swing.JPanel();
         addressHeaderPanel = new javax.swing.JPanel();
@@ -88,6 +111,64 @@ public class MainFrame extends javax.swing.JFrame {
         messageInputPanel = new javax.swing.JPanel();
         inputField = new javax.swing.JTextField();
         sendButton = new javax.swing.JButton();
+
+        diffieHellmanContentPanel.setLayout(new java.awt.BorderLayout(0, 10));
+
+        diffieHellmanFieldsPanel.setLayout(new java.awt.GridLayout(0, 2, 8, 8));
+
+        diffieHellmanGLabel.setText("G");
+        diffieHellmanFieldsPanel.add(diffieHellmanGLabel);
+        diffieHellmanFieldsPanel.add(diffieHellmanGField);
+
+        diffieHellmanPLabel.setText("P");
+        diffieHellmanFieldsPanel.add(diffieHellmanPLabel);
+        diffieHellmanFieldsPanel.add(diffieHellmanPField);
+
+        diffieHellmanXLabel.setText("x (private)");
+        diffieHellmanFieldsPanel.add(diffieHellmanXLabel);
+        diffieHellmanFieldsPanel.add(diffieHellmanXField);
+
+        diffieHellmanALabel.setText("A = G^x mod P");
+        diffieHellmanFieldsPanel.add(diffieHellmanALabel);
+
+        diffieHellmanAField.setEditable(false);
+        diffieHellmanFieldsPanel.add(diffieHellmanAField);
+
+        selectedUserDiffieHellmanGLabel.setText("Selected user G (public)");
+        diffieHellmanFieldsPanel.add(selectedUserDiffieHellmanGLabel);
+
+        selectedUserDiffieHellmanGField.setEditable(false);
+        diffieHellmanFieldsPanel.add(selectedUserDiffieHellmanGField);
+
+        selectedUserDiffieHellmanPLabel.setText("Selected user P (public)");
+        diffieHellmanFieldsPanel.add(selectedUserDiffieHellmanPLabel);
+
+        selectedUserDiffieHellmanPField.setEditable(false);
+        diffieHellmanFieldsPanel.add(selectedUserDiffieHellmanPField);
+
+        selectedUserDiffieHellmanBLabel.setText("Selected user B = G^y mod P (public)");
+        diffieHellmanFieldsPanel.add(selectedUserDiffieHellmanBLabel);
+
+        selectedUserDiffieHellmanBField.setEditable(false);
+        diffieHellmanFieldsPanel.add(selectedUserDiffieHellmanBField);
+
+        diffieHellmanKLabel.setText("K = B^x mod P");
+        diffieHellmanFieldsPanel.add(diffieHellmanKLabel);
+
+        diffieHellmanKField.setEditable(false);
+        diffieHellmanFieldsPanel.add(diffieHellmanKField);
+
+        diffieHellmanContentPanel.add(diffieHellmanFieldsPanel, java.awt.BorderLayout.CENTER);
+
+        diffieHellmanActionsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
+
+        diffieHellmanRandomButton.setText("Random x");
+        diffieHellmanActionsPanel.add(diffieHellmanRandomButton);
+
+        diffieHellmanCalculateButton.setText("Calculate");
+        diffieHellmanActionsPanel.add(diffieHellmanCalculateButton);
+
+        diffieHellmanContentPanel.add(diffieHellmanActionsPanel, java.awt.BorderLayout.SOUTH);
 
         elGamalContentPanel.setLayout(new java.awt.BorderLayout(0, 10));
 
@@ -300,6 +381,25 @@ public class MainFrame extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
         controlsPanel.add(viewElGamalButton, gridBagConstraints);
 
+        diffieHellmanCheck.setText("Diffie-Hellman Key Exchange");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
+        controlsPanel.add(diffieHellmanCheck, gridBagConstraints);
+
+        viewDiffieHellmanButton.setText("<html><u>View&nbsp;Diffie-Hellman</u></html>");
+        viewDiffieHellmanButton.setBorderPainted(false);
+        viewDiffieHellmanButton.setContentAreaFilled(false);
+        viewDiffieHellmanButton.setFocusPainted(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
+        controlsPanel.add(viewDiffieHellmanButton, gridBagConstraints);
+
         headerPanel.add(controlsPanel, java.awt.BorderLayout.CENTER);
 
         getContentPane().add(headerPanel, java.awt.BorderLayout.NORTH);
@@ -409,6 +509,22 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel centerPanel;
     private javax.swing.JLabel clearLabel;
     private javax.swing.JPanel controlsPanel;
+    public javax.swing.JTextField diffieHellmanAField;
+    private javax.swing.JLabel diffieHellmanALabel;
+    private javax.swing.JPanel diffieHellmanActionsPanel;
+    public javax.swing.JButton diffieHellmanCalculateButton;
+    public javax.swing.JCheckBox diffieHellmanCheck;
+    public javax.swing.JPanel diffieHellmanContentPanel;
+    private javax.swing.JPanel diffieHellmanFieldsPanel;
+    public javax.swing.JTextField diffieHellmanGField;
+    private javax.swing.JLabel diffieHellmanGLabel;
+    public javax.swing.JTextField diffieHellmanKField;
+    private javax.swing.JLabel diffieHellmanKLabel;
+    public javax.swing.JTextField diffieHellmanPField;
+    private javax.swing.JLabel diffieHellmanPLabel;
+    public javax.swing.JButton diffieHellmanRandomButton;
+    public javax.swing.JTextField diffieHellmanXField;
+    private javax.swing.JLabel diffieHellmanXLabel;
     private javax.swing.JPanel elGamalActionsPanel;
     public javax.swing.JButton elGamalCalculateButton;
     public javax.swing.JCheckBox elGamalCheck;
@@ -450,6 +566,12 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel selectedUserPLabel;
     public javax.swing.JTextField selectedUserYField;
     private javax.swing.JLabel selectedUserYLabel;
+    public javax.swing.JTextField selectedUserDiffieHellmanBField;
+    private javax.swing.JLabel selectedUserDiffieHellmanBLabel;
+    public javax.swing.JTextField selectedUserDiffieHellmanGField;
+    private javax.swing.JLabel selectedUserDiffieHellmanGLabel;
+    public javax.swing.JTextField selectedUserDiffieHellmanPField;
+    private javax.swing.JLabel selectedUserDiffieHellmanPLabel;
     public javax.swing.JButton sendButton;
     private javax.swing.JLabel spacerLabel;
     public javax.swing.JCheckBox startCheck;
@@ -457,5 +579,6 @@ public class MainFrame extends javax.swing.JFrame {
     public javax.swing.JLabel statusLabel;
     private javax.swing.JLabel titleLabel;
     public javax.swing.JButton viewElGamalButton;
+    public javax.swing.JButton viewDiffieHellmanButton;
     // End of variables declaration//GEN-END:variables
 }

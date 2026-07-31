@@ -4,6 +4,7 @@
  */
 package com.example.socketchat.model;
 
+import com.example.socketchat.encryption.DiffieHellmanEncryption;
 import com.example.socketchat.encryption.ElGamalEncryption.PublicKey;
 
 import java.time.LocalTime;
@@ -20,10 +21,13 @@ public class User {
 
     PublicKey publicKey;
 
-    public User(LocalTime time, String address, PublicKey publicKey) {
+    DiffieHellmanEncryption.PublicKey diffieHellmanPublicKey;
+
+    public User(LocalTime time, String address, PublicKey publicKey, DiffieHellmanEncryption.PublicKey diffieHellmanPublicKey) {
         this.time = time;
         this.address = address;
         this.publicKey = publicKey;
+        this.diffieHellmanPublicKey = diffieHellmanPublicKey;
     }
 
     public LocalTime getTime() {
@@ -44,6 +48,14 @@ public class User {
 
     public void setPublicKey(PublicKey publicKey) {
         this.publicKey = publicKey;
+    }
+
+    public DiffieHellmanEncryption.PublicKey getDiffieHellmanPublicKey() {
+        return diffieHellmanPublicKey;
+    }
+
+    public void setDiffieHellmanPublicKey(DiffieHellmanEncryption.PublicKey diffieHellmanPublicKey) {
+        this.diffieHellmanPublicKey = diffieHellmanPublicKey;
     }
 
     @Override
