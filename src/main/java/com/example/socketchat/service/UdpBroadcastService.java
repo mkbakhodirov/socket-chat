@@ -108,7 +108,9 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
     }
 
     public synchronized void start(int port) throws SocketException {
-        stop();
+        if (running) {
+            throw new IllegalStateException("UDP service is already running");
+        }
         socket = new DatagramSocket(null);
         socket.setReuseAddress(true);
         socket.bind(new InetSocketAddress(port));
