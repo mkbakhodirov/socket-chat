@@ -390,13 +390,19 @@ public class Controller {
 
     private void startListening() {
         if (!frame.startCheck.isSelected()) {
-            udpService.stop();
+            if (udpService != null) {
+                udpService.stop();
+                udpService = null;
+            }
             setStatus(false);
             return;
         }
 
         try {
             InetSocketAddress broadcastAddr = new InetSocketAddress(frame.addressField.getText(), Integer.parseInt(frame.portField.getText()));
+            if (udpService != null) {
+                udpService.stop();
+            }
             udpService = new UdpBroadcastService(
                     broadcastAddr,
                     elGamalEncryption.encodePublicKey(identity.publicKey()),
@@ -416,6 +422,11 @@ public class Controller {
             udpService.execute();
             setStatus(true);
         } catch (Exception ex) {
+            ex.printStackTrace();
+            if (udpService != null) {
+                udpService.stop();
+            }
+            udpService = null;
             frame.startCheck.setSelected(false);
             setStatus(false);
             JOptionPane.showMessageDialog(frame, ex.getMessage(), "Could not start UDP listener", JOptionPane.ERROR_MESSAGE);
@@ -423,7 +434,10 @@ public class Controller {
     }
 
     private void stopListening() {
-        udpService.stop();
+        if (udpService != null) {
+            udpService.stop();
+            udpService = null;
+        }
         setStatus(false);
     }
 
