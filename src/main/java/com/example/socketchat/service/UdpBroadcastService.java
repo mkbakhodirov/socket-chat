@@ -21,28 +21,19 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
     private DatagramSocket socket;
     private volatile boolean running;
     private final GcmEncryption gcmEncryption = new GcmEncryption();
-    private final byte[] localPublicKey;
-    private final byte[] localDiffieHellmanPublicKey;
-
     public static final byte HELLO = 0x00;
     public static final byte PLAIN_MESSAGE = 0x01;
     public static final byte ENCRYPTED_MESSAGE = 0x02;
-    public static final byte ELGAMAL_ENCRYPTED_MESSAGE = 0x03;
-    public static final byte DIFFIE_HELLMAN_HELLO = 0x04;
-    public static final byte DIFFIE_HELLMAN_ENCRYPTED_MESSAGE = 0x05;
+    public static final byte DIFFIE_HELLMAN_ENCRYPTED_MESSAGE = 0x03;
 
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public UdpBroadcastService(
             SocketAddress broadcastAddr,
-            byte[] localPublicKey,
-            byte[] localDiffieHellmanPublicKey,
             Consumer<Message> listener,
             Consumer<Throwable> error
     ) {
         this.broadcastAddr = broadcastAddr;
-        this.localPublicKey = localPublicKey;
-        this.localDiffieHellmanPublicKey = localDiffieHellmanPublicKey;
         this.listener = listener;
         this.error = error;
 
@@ -50,9 +41,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
             if (!running) {
                 return;
             }
-            System.out.println("Local public key: " + Arrays.toString(localPublicKey));
-            send(HELLO, this.localPublicKey, broadcastAddr);
-            send(DIFFIE_HELLMAN_HELLO, this.localDiffieHellmanPublicKey, broadcastAddr);
+            send(HELLO, new byte[0], broadcastAddr);
         }, 3, 3, TimeUnit.SECONDS);
     }
 
@@ -115,8 +104,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         socket.setReuseAddress(true);
         socket.bind(new InetSocketAddress(port));
         running = true;
-        send(HELLO, localPublicKey, broadcastAddr);
-        send(DIFFIE_HELLMAN_HELLO, localDiffieHellmanPublicKey, broadcastAddr);
+        send(HELLO, new byte[0], broadcastAddr);
     }
 
     public synchronized void stop() {
@@ -136,11 +124,10 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         send(PLAIN_MESSAGE, message.getBytes(StandardCharsets.UTF_8), sa);
     }
 
-    public void sendEncrypted(String message, String hexKey, boolean elGamal, SocketAddress address) {
+    public void sendEncrypted(String message, String hexKey, SocketAddress address) {
         try {
             byte[] payload = gcmEncryption.encrypt(message, hexKey);
-            send(elGamal ? ELGAMAL_ENCRYPTED_MESSAGE
-                    : ENCRYPTED_MESSAGE, payload, address);
+            send(ENCRYPTED_MESSAGE, payload, address);
         } catch (Exception ex) {
             publish(ex);
         }

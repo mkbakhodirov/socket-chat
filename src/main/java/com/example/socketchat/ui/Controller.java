@@ -2,9 +2,6 @@ package com.example.socketchat.ui;
 
 import com.example.socketchat.dto.Message;
 import com.example.socketchat.encryption.DiffieHellmanEncryption;
-import com.example.socketchat.encryption.ElGamalEncryption;
-import com.example.socketchat.encryption.ElGamalEncryption.KeyPair;
-import com.example.socketchat.encryption.ElGamalEncryption.PublicKey;
 import com.example.socketchat.encryption.GcmEncryption;
 import com.example.socketchat.model.ChatMessage;
 import com.example.socketchat.model.User;
@@ -14,6 +11,8 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import javax.swing.*;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.math.BigInteger;
@@ -32,12 +31,9 @@ public class Controller {
 
     UdpBroadcastService udpService;
     @Inject
-    ElGamalEncryption elGamalEncryption;
-    @Inject
     DiffieHellmanEncryption diffieHellmanEncryption;
     @Inject
     GcmEncryption gcmEncryption;
-    KeyPair identity;
     DiffieHellmanEncryption.KeyPair diffieHellmanIdentity;
 
     private final MainFrame frame = new MainFrame();
@@ -47,9 +43,7 @@ public class Controller {
 
     public void run() {
         frame.hexKeyField.setText("");
-        frame.receiveHexKeyField.setText("");
 
-        identity = elGamalEncryption.generateKeyPair();
         diffieHellmanIdentity = diffieHellmanEncryption.generateKeyPair();
 
         loadAddresses();
@@ -66,24 +60,9 @@ public class Controller {
 
         frame.encryptionCheck.addActionListener(event -> selectEncryption());
 
-        frame.elGamalCheck.addActionListener(event -> selectElGamal());
-
-        frame.viewElGamalButton.addActionListener(event -> showElGamalForm());
-
         frame.diffieHellmanCheck.addActionListener(event -> selectDiffieHellman());
 
         frame.viewDiffieHellmanButton.addActionListener(event -> showDiffieHellmanForm());
-
-        frame.addressList.addListSelectionListener(event -> {
-            if (!event.getValueIsAdjusting()) {
-                if (frame.elGamalCheck.isSelected()) {
-                    showKeyForSelectedUser();
-                }
-                if (frame.diffieHellmanCheck.isSelected()) {
-                    showDiffieHellmanKeyForSelectedUser();
-                }
-            }
-        });
 
         frame.inputField.addKeyListener(new KeyAdapter() {
             @Override
@@ -105,170 +84,22 @@ public class Controller {
         if (enabled) {
             String key = gcmEncryption.generateKey();
             frame.hexKeyField.setText(key);
-            frame.receiveHexKeyField.setText(key);
         } else {
-            frame.elGamalCheck.setSelected(false);
             frame.diffieHellmanCheck.setSelected(false);
             frame.hexKeyField.setText("");
-            frame.receiveHexKeyField.setText("");
         }
 
-        frame.hexKeyField.setEditable(enabled && !frame.elGamalCheck.isSelected() && !frame.diffieHellmanCheck.isSelected());
-        frame.receiveHexKeyField.setEditable(enabled && !frame.elGamalCheck.isSelected() && !frame.diffieHellmanCheck.isSelected());
-    }
-
-    private void selectElGamal() {
-        if (frame.elGamalCheck.isSelected()) {
-            frame.diffieHellmanCheck.setSelected(false);
-            if (!frame.encryptionCheck.isSelected()) {
-                frame.encryptionCheck.setSelected(true);
-            }
-            frame.hexKeyField.setEditable(false);
-            frame.receiveHexKeyField.setEditable(false);
-            showKeyForSelectedUser();
-        } else {
-            selectEncryption();
-        }
+        frame.hexKeyField.setEditable(enabled && !frame.diffieHellmanCheck.isSelected());
     }
 
     private void selectDiffieHellman() {
         if (frame.diffieHellmanCheck.isSelected()) {
-            frame.elGamalCheck.setSelected(false);
             if (!frame.encryptionCheck.isSelected()) {
                 frame.encryptionCheck.setSelected(true);
             }
             frame.hexKeyField.setEditable(false);
-            frame.receiveHexKeyField.setEditable(false);
-            showDiffieHellmanKeyForSelectedUser();
         } else {
             selectEncryption();
-        }
-    }
-
-    private void showKeyForSelectedUser() {
-        User user = (User) frame.addressList.getSelectedValue();
-        if (user == null || user.getPublicKey() == null) {
-            JOptionPane.showMessageDialog(
-                    frame,
-                    "Select a user to derive an AES key",
-                    "Warning",
-                    JOptionPane.ERROR_MESSAGE
-            );
-            frame.elGamalCheck.setSelected(false);
-            frame.encryptionCheck.setSelected(true);
-            selectEncryption();
-            return;
-        }
-
-        frame.hexKeyField.setText(elGamalEncryption.toEncryptionKey(user.getPublicKey(), identity.k()));
-        frame.receiveHexKeyField.setText(
-                elGamalEncryption.toDecryptionKey(user.getPublicKey(), identity.x(), identity.p(), identity.g()
-        ));
-    }
-
-    private void showDiffieHellmanKeyForSelectedUser() {
-        User user = (User) frame.addressList.getSelectedValue();
-        if (user == null || user.getDiffieHellmanPublicKey() == null) {
-            JOptionPane.showMessageDialog(
-                    frame,
-                    "Select a user to calculate Diffie-Hellman K",
-                    "Warning",
-                    JOptionPane.ERROR_MESSAGE
-            );
-            frame.diffieHellmanCheck.setSelected(false);
-            frame.encryptionCheck.setSelected(true);
-            selectEncryption();
-            return;
-        }
-
-        String key = diffieHellmanEncryption.toSecretKey(
-                user.getDiffieHellmanPublicKey(),
-                diffieHellmanIdentity.x(),
-                diffieHellmanIdentity.p(),
-                diffieHellmanIdentity.g()
-        );
-        frame.hexKeyField.setText(key);
-        frame.receiveHexKeyField.setText(key);
-    }
-
-    private void showElGamalForm() {
-        frame.elGamalGField.setText(identity.g().toString());
-        frame.elGamalPField.setText(identity.p().toString());
-        frame.elGamalXField.setText(identity.x().toString());
-        frame.elGamalKField.setText(identity.k().toString());
-        frame.elGamalYField.setText(identity.y().toString());
-        frame.elGamalEphemeralField.setText(identity.ephemeral().toString());
-
-        User user = (User) frame.addressList.getSelectedValue();
-        if (user != null) {
-            frame.selectedUserGField.setText(user.getPublicKey().g().toString());
-            frame.selectedUserPField.setText(user.getPublicKey().p().toString());
-            frame.selectedUserYField.setText(user.getPublicKey().y().toString());
-            frame.selectedUserEphemeralField.setText(user.getPublicKey().ephemeral().toString());
-        } else {
-            frame.selectedUserGField.setText("");
-            frame.selectedUserPField.setText("");
-            frame.selectedUserYField.setText("");
-            frame.selectedUserEphemeralField.setText("");
-        }
-
-        Runnable calculate = () -> {
-            try {
-                BigInteger p = parsePositive(frame.elGamalPField, "P");
-                KeyPair keyPair = elGamalEncryption.calculate(
-                        parsePositive(frame.elGamalGField, "G"),
-                        p,
-                        parsePositive(frame.elGamalXField, "x"),
-                        parsePositive(frame.elGamalKField, "k")
-                );
-                frame.elGamalYField.setText(keyPair.y().toString());
-                frame.elGamalEphemeralField.setText(keyPair.ephemeral().toString());
-            } catch (RuntimeException ex) {
-                JOptionPane.showMessageDialog(frame, ex.getMessage(), "Invalid ElGamal values", JOptionPane.ERROR_MESSAGE);
-            }
-        };
-
-        frame.elGamalRandomButton.addActionListener(event -> {
-            try {
-                BigInteger p = parsePositive(frame.elGamalPField, "P");
-                frame.elGamalXField.setText(elGamalEncryption.randomExponent(p).toString());
-                frame.elGamalKField.setText(elGamalEncryption.randomExponent(p).toString());
-                calculate.run();
-            } catch (RuntimeException ex) {
-                JOptionPane.showMessageDialog(frame, ex.getMessage(), "Invalid ElGamal values", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        frame.elGamalCalculateButton.addActionListener(event -> calculate.run());
-
-        int result = JOptionPane.showConfirmDialog(
-                frame,
-                frame.elGamalContentPanel,
-                "El Gamal Key Exchange",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
-        );
-        if (result != JOptionPane.OK_OPTION) {
-            return;
-        }
-
-        try {
-            identity = elGamalEncryption.calculate(
-                    parsePositive(frame.elGamalGField, "G"),
-                    parsePositive(frame.elGamalPField, "P"),
-                    parsePositive(frame.elGamalXField, "x"),
-                    parsePositive(frame.elGamalKField, "k")
-            );
-
-            if (frame.startCheck.isSelected()) {
-                startListening();
-            }
-
-            if (frame.elGamalCheck.isSelected()) {
-                showKeyForSelectedUser();
-            }
-        } catch (RuntimeException ex) {
-            JOptionPane.showMessageDialog(frame, ex.getMessage(), "Could not apply ElGamal values", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -276,25 +107,9 @@ public class Controller {
         frame.diffieHellmanGField.setText(diffieHellmanIdentity.g().toString());
         frame.diffieHellmanPField.setText(diffieHellmanIdentity.p().toString());
         frame.diffieHellmanXField.setText(diffieHellmanIdentity.x().toString());
-        frame.diffieHellmanAField.setText(diffieHellmanIdentity.publicValue().toString());
-
-        User user = (User) frame.addressList.getSelectedValue();
-        if (user != null && user.getDiffieHellmanPublicKey() != null) {
-            frame.selectedUserDiffieHellmanGField.setText(user.getDiffieHellmanPublicKey().g().toString());
-            frame.selectedUserDiffieHellmanPField.setText(user.getDiffieHellmanPublicKey().p().toString());
-            frame.selectedUserDiffieHellmanBField.setText(user.getDiffieHellmanPublicKey().publicValue().toString());
-            frame.diffieHellmanKField.setText(diffieHellmanEncryption.sharedSecret(
-                    user.getDiffieHellmanPublicKey(),
-                    diffieHellmanIdentity.x(),
-                    diffieHellmanIdentity.p(),
-                    diffieHellmanIdentity.g()
-            ).toString());
-        } else {
-            frame.selectedUserDiffieHellmanGField.setText("");
-            frame.selectedUserDiffieHellmanPField.setText("");
-            frame.selectedUserDiffieHellmanBField.setText("");
-            frame.diffieHellmanKField.setText("");
-        }
+        frame.diffieHellmanYField.setText(diffieHellmanIdentity.y().toString());
+        frame.selectedUserDiffieHellmanYField.setText("");
+        frame.diffieHellmanKField.setText("");
 
         Runnable calculate = () -> {
             try {
@@ -303,11 +118,16 @@ public class Controller {
                         parsePositive(frame.diffieHellmanPField, "P"),
                         parsePositive(frame.diffieHellmanXField, "x")
                 );
-                frame.diffieHellmanAField.setText(keyPair.publicValue().toString());
-                if (user != null && user.getDiffieHellmanPublicKey() != null) {
+                frame.diffieHellmanYField.setText(keyPair.y().toString());
+                if (!frame.selectedUserDiffieHellmanYField.getText().isBlank()) {
+                    DiffieHellmanEncryption.PublicKey publicKey = new DiffieHellmanEncryption.PublicKey(
+                            keyPair.g(), keyPair.p(), parsePositive(frame.selectedUserDiffieHellmanYField, "Selected user's y")
+                    );
                     frame.diffieHellmanKField.setText(diffieHellmanEncryption.sharedSecret(
-                            user.getDiffieHellmanPublicKey(), keyPair.x(), keyPair.p(), keyPair.g()
+                            publicKey, keyPair.x(), keyPair.p(), keyPair.g()
                     ).toString());
+                } else {
+                    frame.diffieHellmanKField.setText("");
                 }
             } catch (RuntimeException ex) {
                 JOptionPane.showMessageDialog(frame, ex.getMessage(), "Invalid Diffie-Hellman values", JOptionPane.ERROR_MESSAGE);
@@ -326,6 +146,14 @@ public class Controller {
 
         frame.diffieHellmanCalculateButton.addActionListener(event -> calculate.run());
 
+        frame.diffieHellmanCopyButton.addActionListener(event -> {
+            calculate.run();
+            String publicValues = "G=" + frame.diffieHellmanGField.getText().trim()
+                    + ", P=" + frame.diffieHellmanPField.getText().trim()
+                    + ", y=" + frame.diffieHellmanYField.getText().trim();
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(publicValues), null);
+        });
+
         int result = JOptionPane.showConfirmDialog(
                 frame,
                 frame.diffieHellmanContentPanel,
@@ -343,13 +171,14 @@ public class Controller {
                     parsePositive(frame.diffieHellmanPField, "P"),
                     parsePositive(frame.diffieHellmanXField, "x")
             );
-
-            if (frame.startCheck.isSelected()) {
-                startListening();
-            }
-
-            if (frame.diffieHellmanCheck.isSelected()) {
-                showDiffieHellmanKeyForSelectedUser();
+            if (!frame.selectedUserDiffieHellmanYField.getText().isBlank()) {
+                DiffieHellmanEncryption.PublicKey publicKey = new DiffieHellmanEncryption.PublicKey(
+                        diffieHellmanIdentity.g(), diffieHellmanIdentity.p(),
+                        parsePositive(frame.selectedUserDiffieHellmanYField, "Selected user's y")
+                );
+                frame.hexKeyField.setText(diffieHellmanEncryption.toSecretKey(
+                        publicKey, diffieHellmanIdentity.x(), diffieHellmanIdentity.p(), diffieHellmanIdentity.g()
+                ));
             }
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(frame, ex.getMessage(), "Could not apply Diffie-Hellman values", JOptionPane.ERROR_MESSAGE);
@@ -405,8 +234,6 @@ public class Controller {
             }
             udpService = new UdpBroadcastService(
                     broadcastAddr,
-                    elGamalEncryption.encodePublicKey(identity.publicKey()),
-                    diffieHellmanEncryption.encodePublicKey(diffieHellmanIdentity.publicKey()),
                     this::appendMessage,
                     new Consumer<Throwable>() {
                         @Override
@@ -462,10 +289,8 @@ public class Controller {
                 udpService.sendPlain(text, isa);
             } else if (frame.diffieHellmanCheck.isSelected()) {
                 udpService.sendDiffieHellmanEncrypted(text, frame.hexKeyField.getText().trim(), isa);
-            } else if (!frame.elGamalCheck.isSelected()) {
-                udpService.sendEncrypted(text, frame.hexKeyField.getText().trim(), false, isa);
             } else {
-                udpService.sendEncrypted(text, frame.hexKeyField.getText().trim(), true, isa);
+                udpService.sendEncrypted(text, frame.hexKeyField.getText().trim(), isa);
             }
             frame.inputField.setText("");
         } catch (Exception ex) {
@@ -477,56 +302,13 @@ public class Controller {
         switch (message.getType()) {
             case UdpBroadcastService.HELLO: {
                 SwingUtilities.invokeLater(() -> {
-                    PublicKey publicKey;
-                    try {
-                        publicKey = elGamalEncryption.decodePublicKey(message.getPayload());
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        frame.messages.append("Ignored invalid public key from " + message.getAddress() + "\n");
-                        return;
-                    }
-
-                    User user = new User(LocalTime.now(), message.getAddress(), publicKey, null);
+                    User user = new User(LocalTime.now(), message.getAddress());
                     UserModel um = (UserModel) frame.addressList.getModel();
                     Enumeration<User> en = um.elements();
                     while (en.hasMoreElements()) {
                         User u = en.nextElement();
                         if (u.getAddress().equals(user.getAddress())) {
                             u.setTime(user.getTime());
-                            u.setPublicKey(user.getPublicKey());
-                            if (frame.elGamalCheck.isSelected() && frame.addressList.getSelectedValue() == u) {
-                                showKeyForSelectedUser();
-                            }
-                            return;
-                        }
-                    }
-                    um.addElement(user);
-                });
-                break;
-            }
-
-            case UdpBroadcastService.DIFFIE_HELLMAN_HELLO: {
-                SwingUtilities.invokeLater(() -> {
-                    DiffieHellmanEncryption.PublicKey publicKey;
-                    try {
-                        publicKey = diffieHellmanEncryption.decodePublicKey(message.getPayload());
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        frame.messages.append("Ignored invalid Diffie-Hellman public key from " + message.getAddress() + "\n");
-                        return;
-                    }
-
-                    User user = new User(LocalTime.now(), message.getAddress(), null, publicKey);
-                    UserModel um = (UserModel) frame.addressList.getModel();
-                    Enumeration<User> en = um.elements();
-                    while (en.hasMoreElements()) {
-                        User u = en.nextElement();
-                        if (u.getAddress().equals(user.getAddress())) {
-                            u.setTime(user.getTime());
-                            u.setDiffieHellmanPublicKey(user.getDiffieHellmanPublicKey());
-                            if (frame.diffieHellmanCheck.isSelected() && frame.addressList.getSelectedValue() == u) {
-                                showDiffieHellmanKeyForSelectedUser();
-                            }
                             return;
                         }
                     }
@@ -552,10 +334,10 @@ public class Controller {
                 break;
             }
 
-            case UdpBroadcastService.ENCRYPTED_MESSAGE, UdpBroadcastService.ELGAMAL_ENCRYPTED_MESSAGE, UdpBroadcastService.DIFFIE_HELLMAN_ENCRYPTED_MESSAGE: {
+            case UdpBroadcastService.ENCRYPTED_MESSAGE, UdpBroadcastService.DIFFIE_HELLMAN_ENCRYPTED_MESSAGE: {
                 String text;
                 try {
-                    text = gcmEncryption.decrypt(message.getPayload(), frame.receiveHexKeyField.getText().trim());
+                    text = gcmEncryption.decrypt(message.getPayload(), frame.hexKeyField.getText().trim());
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     SwingUtilities.invokeLater(() -> {
