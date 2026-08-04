@@ -35,6 +35,8 @@ public class Controller {
     @Inject
     GcmEncryption gcmEncryption;
     DiffieHellmanEncryption.KeyPair diffieHellmanIdentity;
+    private boolean diffieHellmanFormInitialized;
+    private boolean diffieHellmanActionsInitialized;
 
     private final MainFrame frame = new MainFrame();
     private final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
@@ -97,6 +99,9 @@ public class Controller {
             if (!frame.encryptionCheck.isSelected()) {
                 frame.encryptionCheck.setSelected(true);
             }
+            if (frame.diffieHellmanKField.getText().isBlank()) {
+                frame.hexKeyField.setText("");
+            }
             frame.hexKeyField.setEditable(false);
         } else {
             selectEncryption();
@@ -104,12 +109,13 @@ public class Controller {
     }
 
     private void showDiffieHellmanForm() {
-        frame.diffieHellmanGField.setText(diffieHellmanIdentity.g().toString());
-        frame.diffieHellmanPField.setText(diffieHellmanIdentity.p().toString());
-        frame.diffieHellmanXField.setText(diffieHellmanIdentity.x().toString());
-        frame.diffieHellmanYField.setText(diffieHellmanIdentity.y().toString());
-        frame.selectedUserDiffieHellmanYField.setText("");
-        frame.diffieHellmanKField.setText("");
+        if (!diffieHellmanFormInitialized) {
+            frame.diffieHellmanGField.setText(diffieHellmanIdentity.g().toString());
+            frame.diffieHellmanPField.setText(diffieHellmanIdentity.p().toString());
+            frame.diffieHellmanXField.setText(diffieHellmanIdentity.x().toString());
+            frame.diffieHellmanYField.setText(diffieHellmanIdentity.y().toString());
+            diffieHellmanFormInitialized = true;
+        }
 
         Runnable calculate = () -> {
             try {
@@ -134,25 +140,28 @@ public class Controller {
             }
         };
 
-        frame.diffieHellmanRandomButton.addActionListener(event -> {
-            try {
-                BigInteger p = parsePositive(frame.diffieHellmanPField, "P");
-                frame.diffieHellmanXField.setText(diffieHellmanEncryption.randomExponent(p).toString());
+        if (!diffieHellmanActionsInitialized) {
+            frame.diffieHellmanRandomButton.addActionListener(event -> {
+                try {
+                    BigInteger p = parsePositive(frame.diffieHellmanPField, "P");
+                    frame.diffieHellmanXField.setText(diffieHellmanEncryption.randomExponent(p).toString());
+                    calculate.run();
+                } catch (RuntimeException ex) {
+                    JOptionPane.showMessageDialog(frame, ex.getMessage(), "Invalid Diffie-Hellman values", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+
+            frame.diffieHellmanCalculateButton.addActionListener(event -> calculate.run());
+
+            frame.diffieHellmanCopyButton.addActionListener(event -> {
                 calculate.run();
-            } catch (RuntimeException ex) {
-                JOptionPane.showMessageDialog(frame, ex.getMessage(), "Invalid Diffie-Hellman values", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        frame.diffieHellmanCalculateButton.addActionListener(event -> calculate.run());
-
-        frame.diffieHellmanCopyButton.addActionListener(event -> {
-            calculate.run();
-            String publicValues = "G=" + frame.diffieHellmanGField.getText().trim()
-                    + ", P=" + frame.diffieHellmanPField.getText().trim()
-                    + ", y=" + frame.diffieHellmanYField.getText().trim();
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(publicValues), null);
-        });
+                String publicValues = "G=" + frame.diffieHellmanGField.getText().trim()
+                        + ", P=" + frame.diffieHellmanPField.getText().trim()
+                        + ", y=" + frame.diffieHellmanYField.getText().trim();
+                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(publicValues), null);
+            });
+            diffieHellmanActionsInitialized = true;
+        }
 
         int result = JOptionPane.showConfirmDialog(
                 frame,
@@ -179,6 +188,8 @@ public class Controller {
                 frame.hexKeyField.setText(diffieHellmanEncryption.toSecretKey(
                         publicKey, diffieHellmanIdentity.x(), diffieHellmanIdentity.p(), diffieHellmanIdentity.g()
                 ));
+            } else {
+                frame.hexKeyField.setText("");
             }
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(frame, ex.getMessage(), "Could not apply Diffie-Hellman values", JOptionPane.ERROR_MESSAGE);

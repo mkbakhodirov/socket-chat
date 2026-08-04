@@ -102,12 +102,12 @@ public class MainFrame extends javax.swing.JFrame {
         diffieHellmanYField.setEditable(false);
         diffieHellmanFieldsPanel.add(diffieHellmanYField);
 
-        selectedUserDiffieHellmanYLabel.setText("Selected user's y");
+        selectedUserDiffieHellmanYLabel.setText("<html>Selected user's y (y<sub>2</sub>)</html>");
         diffieHellmanFieldsPanel.add(selectedUserDiffieHellmanYLabel);
 
         diffieHellmanFieldsPanel.add(selectedUserDiffieHellmanYField);
 
-        diffieHellmanKLabel.setText("K (secret key)");
+        diffieHellmanKLabel.setText("<html>K (secret key) = y<sub>2</sub>^x mod P</html>");
         diffieHellmanFieldsPanel.add(diffieHellmanKLabel);
 
         diffieHellmanKField.setEditable(false);
