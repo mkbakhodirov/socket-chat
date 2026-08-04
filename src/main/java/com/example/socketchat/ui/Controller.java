@@ -94,8 +94,6 @@ public class Controller {
         } else {
             frame.diffieHellmanCheck.setSelected(false);
         }
-
-        frame.hexKeyField.setEditable(enabled && !frame.diffieHellmanCheck.isSelected());
     }
 
     private void selectDiffieHellman() {
@@ -106,7 +104,6 @@ public class Controller {
             if (frame.diffieHellmanKField.getText().isBlank()) {
                 frame.hexKeyField.setText("");
             }
-            frame.hexKeyField.setEditable(false);
         } else {
             selectEncryption();
         }

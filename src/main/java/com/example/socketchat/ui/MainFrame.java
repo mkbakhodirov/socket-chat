@@ -222,7 +222,6 @@ public class MainFrame extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 14);
         controlsPanel.add(hexKeyLabel, gridBagConstraints);
 
-        hexKeyField.setEditable(false);
         hexKeyField.setColumns(32);
         hexKeyField.setText("00112233445566778899aabbccddeeff");
         gridBagConstraints = new java.awt.GridBagConstraints();
