@@ -84,14 +84,15 @@ public class Controller {
     private void selectEncryption() {
         boolean enabled = frame.encryptionCheck.isSelected();
         if (enabled) {
-            String k = frame.diffieHellmanKField.getText().trim();
-            String key = k.isEmpty()
-                    ? cbcEncryption.generateKey()
-                    : diffieHellmanEncryption.toSecretKey(new BigInteger(k));
-            frame.hexKeyField.setText(key);
+            if (frame.hexKeyField.getText().isBlank()) {
+                String k = frame.diffieHellmanKField.getText().trim();
+                String key = k.isEmpty()
+                        ? cbcEncryption.generateKey()
+                        : diffieHellmanEncryption.toSecretKey(new BigInteger(k));
+                frame.hexKeyField.setText(key);
+            }
         } else {
             frame.diffieHellmanCheck.setSelected(false);
-            frame.hexKeyField.setText("");
         }
 
         frame.hexKeyField.setEditable(enabled && !frame.diffieHellmanCheck.isSelected());
