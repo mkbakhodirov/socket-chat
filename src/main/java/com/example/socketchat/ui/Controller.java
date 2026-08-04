@@ -84,7 +84,10 @@ public class Controller {
     private void selectEncryption() {
         boolean enabled = frame.encryptionCheck.isSelected();
         if (enabled) {
-            String key = gcmEncryption.generateKey();
+            String k = frame.diffieHellmanKField.getText().trim();
+            String key = k.isEmpty()
+                    ? gcmEncryption.generateKey()
+                    : diffieHellmanEncryption.toSecretKey(new BigInteger(k));
             frame.hexKeyField.setText(key);
         } else {
             frame.diffieHellmanCheck.setSelected(false);
@@ -299,7 +302,7 @@ public class Controller {
             if (!frame.encryptionCheck.isSelected()) {
                 udpService.sendPlain(text, isa);
             } else if (frame.diffieHellmanCheck.isSelected()) {
-                udpService.sendDiffieHellmanEncrypted(text, frame.hexKeyField.getText().trim(), isa);
+                udpService.sendPlain(text, isa);
             } else {
                 udpService.sendEncrypted(text, frame.hexKeyField.getText().trim(), isa);
             }
@@ -345,7 +348,7 @@ public class Controller {
                 break;
             }
 
-            case UdpBroadcastService.ENCRYPTED_MESSAGE, UdpBroadcastService.DIFFIE_HELLMAN_ENCRYPTED_MESSAGE: {
+            case UdpBroadcastService.ENCRYPTED_MESSAGE: {
                 String text;
                 try {
                     text = gcmEncryption.decrypt(message.getPayload(), frame.hexKeyField.getText().trim());

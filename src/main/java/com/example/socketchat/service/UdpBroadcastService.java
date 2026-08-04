@@ -24,7 +24,6 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
     public static final byte HELLO = 0x00;
     public static final byte PLAIN_MESSAGE = 0x01;
     public static final byte ENCRYPTED_MESSAGE = 0x02;
-    public static final byte DIFFIE_HELLMAN_ENCRYPTED_MESSAGE = 0x03;
 
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -128,15 +127,6 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         try {
             byte[] payload = gcmEncryption.encrypt(message, hexKey);
             send(ENCRYPTED_MESSAGE, payload, address);
-        } catch (Exception ex) {
-            publish(ex);
-        }
-    }
-
-    public void sendDiffieHellmanEncrypted(String message, String hexKey, SocketAddress address) {
-        try {
-            byte[] payload = gcmEncryption.encrypt(message, hexKey);
-            send(DIFFIE_HELLMAN_ENCRYPTED_MESSAGE, payload, address);
         } catch (Exception ex) {
             publish(ex);
         }

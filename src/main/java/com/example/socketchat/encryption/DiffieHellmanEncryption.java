@@ -47,7 +47,15 @@ public final class DiffieHellmanEncryption {
     }
 
     public String toSecretKey(PublicKey receiver, BigInteger x, BigInteger p, BigInteger g) {
-        String key = sharedSecret(receiver, x, p, g).toString(16);
+        return toSecretKey(sharedSecret(receiver, x, p, g));
+    }
+
+    public String toSecretKey(BigInteger sharedSecret) {
+        if (sharedSecret == null || sharedSecret.signum() <= 0) {
+            throw new IllegalArgumentException("Diffie-Hellman K must be positive");
+        }
+
+        String key = sharedSecret.toString(16);
         int length = key.length() <= 32 ? 32 : key.length() <= 48 ? 48 : 64;
         if (key.length() > length) {
             throw new IllegalArgumentException("Diffie-Hellman K is too large for AES");
