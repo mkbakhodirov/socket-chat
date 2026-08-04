@@ -1,8 +1,8 @@
 package com.example.socketchat.ui;
 
 import com.example.socketchat.dto.Message;
+import com.example.socketchat.encryption.CbcEncryption;
 import com.example.socketchat.encryption.DiffieHellmanEncryption;
-import com.example.socketchat.encryption.GcmEncryption;
 import com.example.socketchat.model.ChatMessage;
 import com.example.socketchat.model.User;
 import com.example.socketchat.model.UserModel;
@@ -11,7 +11,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import javax.swing.*;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -33,7 +33,7 @@ public class Controller {
     @Inject
     DiffieHellmanEncryption diffieHellmanEncryption;
     @Inject
-    GcmEncryption gcmEncryption;
+    CbcEncryption cbcEncryption;
     DiffieHellmanEncryption.KeyPair diffieHellmanIdentity;
     private boolean diffieHellmanFormInitialized;
     private boolean diffieHellmanActionsInitialized;
@@ -86,7 +86,7 @@ public class Controller {
         if (enabled) {
             String k = frame.diffieHellmanKField.getText().trim();
             String key = k.isEmpty()
-                    ? gcmEncryption.generateKey()
+                    ? cbcEncryption.generateKey()
                     : diffieHellmanEncryption.toSecretKey(new BigInteger(k));
             frame.hexKeyField.setText(key);
         } else {
@@ -351,7 +351,7 @@ public class Controller {
             case UdpBroadcastService.ENCRYPTED_MESSAGE: {
                 String text;
                 try {
-                    text = gcmEncryption.decrypt(message.getPayload(), frame.hexKeyField.getText().trim());
+                    text = cbcEncryption.decrypt(message.getPayload(), frame.hexKeyField.getText().trim());
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     SwingUtilities.invokeLater(() -> {

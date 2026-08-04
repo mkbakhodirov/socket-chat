@@ -1,7 +1,7 @@
 package com.example.socketchat.service;
 
 import com.example.socketchat.dto.Message;
-import com.example.socketchat.encryption.GcmEncryption;
+import com.example.socketchat.encryption.CbcEncryption;
 
 import javax.swing.*;
 import java.net.*;
@@ -20,7 +20,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
     private Consumer<Throwable> error;
     private DatagramSocket socket;
     private volatile boolean running;
-    private final GcmEncryption gcmEncryption = new GcmEncryption();
+    private final CbcEncryption cbcEncryption = new CbcEncryption();
     public static final byte HELLO = 0x00;
     public static final byte PLAIN_MESSAGE = 0x01;
     public static final byte ENCRYPTED_MESSAGE = 0x02;
@@ -125,7 +125,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
 
     public void sendEncrypted(String message, String hexKey, SocketAddress address) {
         try {
-            byte[] payload = gcmEncryption.encrypt(message, hexKey);
+            byte[] payload = cbcEncryption.encrypt(message, hexKey);
             send(ENCRYPTED_MESSAGE, payload, address);
         } catch (Exception ex) {
             publish(ex);
