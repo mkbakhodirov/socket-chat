@@ -47,6 +47,22 @@ public class MainFrame extends javax.swing.JFrame {
         diffieHellmanRandomButton = new javax.swing.JButton();
         diffieHellmanCalculateButton = new javax.swing.JButton();
         diffieHellmanCopyButton = new javax.swing.JButton();
+        dsaContentPanel = new javax.swing.JPanel();
+        dsaFieldsPanel = new javax.swing.JPanel();
+        dsaPLabel = new javax.swing.JLabel();
+        dsaPField = new javax.swing.JTextField();
+        dsaQLabel = new javax.swing.JLabel();
+        dsaQField = new javax.swing.JTextField();
+        dsaGLabel = new javax.swing.JLabel();
+        dsaGField = new javax.swing.JTextField();
+        dsaXLabel = new javax.swing.JLabel();
+        dsaXField = new javax.swing.JTextField();
+        dsaYLabel = new javax.swing.JLabel();
+        dsaYField = new javax.swing.JTextField();
+        dsaActionsPanel = new javax.swing.JPanel();
+        dsaRandomButton = new javax.swing.JButton();
+        dsaCalculateButton = new javax.swing.JButton();
+        dsaCopyButton = new javax.swing.JButton();
         headerPanel = new javax.swing.JPanel();
         titleLabel = new javax.swing.JLabel();
         controlsPanel = new javax.swing.JPanel();
@@ -63,6 +79,10 @@ public class MainFrame extends javax.swing.JFrame {
         hexKeyField = new javax.swing.JTextField();
         diffieHellmanCheck = new javax.swing.JCheckBox();
         viewDiffieHellmanButton = new javax.swing.JButton();
+        signatureCheck = new javax.swing.JCheckBox();
+        selectedUserDsaYLabel = new javax.swing.JLabel();
+        selectedUserDsaYField = new javax.swing.JTextField();
+        viewDsaButton = new javax.swing.JButton();
         centerPanel = new javax.swing.JPanel();
         addressPanel = new javax.swing.JPanel();
         addressHeaderPanel = new javax.swing.JPanel();
@@ -127,6 +147,47 @@ public class MainFrame extends javax.swing.JFrame {
         diffieHellmanActionsPanel.add(diffieHellmanCopyButton);
 
         diffieHellmanContentPanel.add(diffieHellmanActionsPanel, java.awt.BorderLayout.SOUTH);
+
+        dsaContentPanel.setLayout(new java.awt.BorderLayout(0, 10));
+
+        dsaFieldsPanel.setLayout(new java.awt.GridLayout(0, 2, 8, 8));
+
+        dsaPLabel.setText("P");
+        dsaFieldsPanel.add(dsaPLabel);
+        dsaFieldsPanel.add(dsaPField);
+
+        dsaQLabel.setText("Q");
+        dsaFieldsPanel.add(dsaQLabel);
+        dsaFieldsPanel.add(dsaQField);
+
+        dsaGLabel.setText("G");
+        dsaFieldsPanel.add(dsaGLabel);
+        dsaFieldsPanel.add(dsaGField);
+
+        dsaXLabel.setText("x (private)");
+        dsaFieldsPanel.add(dsaXLabel);
+        dsaFieldsPanel.add(dsaXField);
+
+        dsaYLabel.setText("y = G^x mod P");
+        dsaFieldsPanel.add(dsaYLabel);
+
+        dsaYField.setEditable(false);
+        dsaFieldsPanel.add(dsaYField);
+
+        dsaContentPanel.add(dsaFieldsPanel, java.awt.BorderLayout.CENTER);
+
+        dsaActionsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
+
+        dsaRandomButton.setText("Random x");
+        dsaActionsPanel.add(dsaRandomButton);
+
+        dsaCalculateButton.setText("Calculate");
+        dsaActionsPanel.add(dsaCalculateButton);
+
+        dsaCopyButton.setText("Copy public values");
+        dsaActionsPanel.add(dsaCopyButton);
+
+        dsaContentPanel.add(dsaActionsPanel, java.awt.BorderLayout.SOUTH);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("UDP Broadcast Chat");
@@ -251,6 +312,42 @@ public class MainFrame extends javax.swing.JFrame {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
         controlsPanel.add(viewDiffieHellmanButton, gridBagConstraints);
+
+        signatureCheck.setText("DSA Signature");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 14);
+        controlsPanel.add(signatureCheck, gridBagConstraints);
+
+        selectedUserDsaYLabel.setText("PUBLIC Y");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 14);
+        controlsPanel.add(selectedUserDsaYLabel, gridBagConstraints);
+
+        selectedUserDsaYField.setColumns(32);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 14);
+        controlsPanel.add(selectedUserDsaYField, gridBagConstraints);
+
+        viewDsaButton.setText("<html><u>View&nbsp;DSA</u></html>");
+        viewDsaButton.setBorderPainted(false);
+        viewDsaButton.setContentAreaFilled(false);
+        viewDsaButton.setFocusPainted(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        controlsPanel.add(viewDsaButton, gridBagConstraints);
 
         headerPanel.add(controlsPanel, java.awt.BorderLayout.CENTER);
 
@@ -378,6 +475,22 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel diffieHellmanXLabel;
     public javax.swing.JTextField diffieHellmanYField;
     private javax.swing.JLabel diffieHellmanYLabel;
+    private javax.swing.JPanel dsaActionsPanel;
+    public javax.swing.JButton dsaCalculateButton;
+    public javax.swing.JPanel dsaContentPanel;
+    public javax.swing.JButton dsaCopyButton;
+    private javax.swing.JPanel dsaFieldsPanel;
+    public javax.swing.JTextField dsaGField;
+    private javax.swing.JLabel dsaGLabel;
+    public javax.swing.JTextField dsaPField;
+    private javax.swing.JLabel dsaPLabel;
+    public javax.swing.JTextField dsaQField;
+    private javax.swing.JLabel dsaQLabel;
+    public javax.swing.JButton dsaRandomButton;
+    public javax.swing.JTextField dsaXField;
+    private javax.swing.JLabel dsaXLabel;
+    public javax.swing.JTextField dsaYField;
+    private javax.swing.JLabel dsaYLabel;
     public javax.swing.JCheckBox encryptionCheck;
     private javax.swing.JPanel headerPanel;
     public javax.swing.JTextField hexKeyField;
@@ -393,12 +506,16 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel portLabel;
     public javax.swing.JTextField selectedUserDiffieHellmanYField;
     private javax.swing.JLabel selectedUserDiffieHellmanYLabel;
+    public javax.swing.JTextField selectedUserDsaYField;
+    public javax.swing.JLabel selectedUserDsaYLabel;
     public javax.swing.JButton sendButton;
+    public javax.swing.JCheckBox signatureCheck;
     private javax.swing.JLabel spacerLabel;
     public javax.swing.JCheckBox startCheck;
     private javax.swing.JLabel startLabel;
     public javax.swing.JLabel statusLabel;
     private javax.swing.JLabel titleLabel;
     public javax.swing.JButton viewDiffieHellmanButton;
+    public javax.swing.JButton viewDsaButton;
     // End of variables declaration//GEN-END:variables
 }

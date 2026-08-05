@@ -1,11 +1,9 @@
 package com.example.socketchat.service;
 
 import com.example.socketchat.dto.Message;
-import com.example.socketchat.encryption.CbcEncryption;
 
 import javax.swing.*;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -20,10 +18,11 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
     private Consumer<Throwable> error;
     private DatagramSocket socket;
     private volatile boolean running;
-    private final CbcEncryption cbcEncryption = new CbcEncryption();
     public static final byte HELLO = 0x00;
     public static final byte PLAIN_MESSAGE = 0x01;
     public static final byte ENCRYPTED_MESSAGE = 0x02;
+    public static final byte SIGNED_PLAIN_MESSAGE = 0x03;
+    public static final byte SIGNED_ENCRYPTED_MESSAGE = 0x04;
 
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -115,24 +114,11 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         scheduler.shutdownNow();
     }
 
-    public void sendPlain(String message, SocketAddress sa) {
+    public void send(byte type, byte[] payload, SocketAddress sa) {
         if (!running) {
             error.accept(new IllegalStateException("UDP is OFFLINE!!!"));
             return;
         }
-        send(PLAIN_MESSAGE, message.getBytes(StandardCharsets.UTF_8), sa);
-    }
-
-    public void sendEncrypted(String message, String hexKey, SocketAddress address) {
-        try {
-            byte[] payload = cbcEncryption.encrypt(message, hexKey);
-            send(ENCRYPTED_MESSAGE, payload, address);
-        } catch (Exception ex) {
-            publish(ex);
-        }
-    }
-
-    private void send(byte type, byte[] payload, SocketAddress sa) {
         if (payload.length > 255) {
             error.accept(new IllegalArgumentException("UDP payload must not exceed 255 bytes"));
             return;

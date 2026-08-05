@@ -35,7 +35,11 @@ public class CbcEncryption {
                 new IvParameterSpec(iv)
         );
 
-        byte[] ciphertext = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
+        byte[] plainTextBytes = plainText.getBytes(StandardCharsets.UTF_8);
+        int paddedLength = Math.max(16, ((plainTextBytes.length + 15) / 16) * 16);
+        byte[] paddedPlainText = Arrays.copyOf(plainTextBytes, paddedLength);
+        Arrays.fill(paddedPlainText, plainTextBytes.length, paddedLength, (byte) ' ');
+        byte[] ciphertext = cipher.doFinal(paddedPlainText);
 
         byte[] encrypted = new byte[iv.length + ciphertext.length];
         System.arraycopy(iv, 0, encrypted, 0, iv.length);
@@ -62,7 +66,7 @@ public class CbcEncryption {
 
         byte[] plaintext = cipher.doFinal(ciphertext);
 
-        return new String(plaintext, StandardCharsets.UTF_8);
+        return new String(plaintext, StandardCharsets.UTF_8).trim();
     }
 
     private byte[] fromHex(String hexKey) {

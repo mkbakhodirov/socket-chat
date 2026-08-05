@@ -134,6 +134,91 @@
         </Container>
       </SubComponents>
     </Container>
+    <Container class="javax.swing.JPanel" name="dsaContentPanel">
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/>
+      </AuxValues>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout">
+        <Property name="verticalGap" type="int" value="10"/>
+      </Layout>
+      <SubComponents>
+        <Container class="javax.swing.JPanel" name="dsaFieldsPanel">
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription">
+              <BorderConstraints direction="Center"/>
+            </Constraint>
+          </Constraints>
+
+          <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout">
+            <Property name="columns" type="int" value="2"/>
+            <Property name="horizontalGap" type="int" value="8"/>
+            <Property name="rows" type="int" value="0"/>
+            <Property name="verticalGap" type="int" value="8"/>
+          </Layout>
+          <SubComponents>
+            <Component class="javax.swing.JLabel" name="dsaPLabel">
+              <Properties><Property name="text" type="java.lang.String" value="P"/></Properties>
+            </Component>
+            <Component class="javax.swing.JTextField" name="dsaPField">
+              <AuxValues><AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/></AuxValues>
+            </Component>
+            <Component class="javax.swing.JLabel" name="dsaQLabel">
+              <Properties><Property name="text" type="java.lang.String" value="Q"/></Properties>
+            </Component>
+            <Component class="javax.swing.JTextField" name="dsaQField">
+              <AuxValues><AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/></AuxValues>
+            </Component>
+            <Component class="javax.swing.JLabel" name="dsaGLabel">
+              <Properties><Property name="text" type="java.lang.String" value="G"/></Properties>
+            </Component>
+            <Component class="javax.swing.JTextField" name="dsaGField">
+              <AuxValues><AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/></AuxValues>
+            </Component>
+            <Component class="javax.swing.JLabel" name="dsaXLabel">
+              <Properties><Property name="text" type="java.lang.String" value="x (private)"/></Properties>
+            </Component>
+            <Component class="javax.swing.JTextField" name="dsaXField">
+              <AuxValues><AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/></AuxValues>
+            </Component>
+            <Component class="javax.swing.JLabel" name="dsaYLabel">
+              <Properties><Property name="text" type="java.lang.String" value="y = G^x mod P"/></Properties>
+            </Component>
+            <Component class="javax.swing.JTextField" name="dsaYField">
+              <Properties><Property name="editable" type="boolean" value="false"/></Properties>
+              <AuxValues><AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/></AuxValues>
+            </Component>
+          </SubComponents>
+        </Container>
+        <Container class="javax.swing.JPanel" name="dsaActionsPanel">
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription">
+              <BorderConstraints direction="South"/>
+            </Constraint>
+          </Constraints>
+
+          <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
+            <Property name="alignment" type="int" value="0"/>
+            <Property name="horizontalGap" type="int" value="8"/>
+            <Property name="verticalGap" type="int" value="0"/>
+          </Layout>
+          <SubComponents>
+            <Component class="javax.swing.JButton" name="dsaRandomButton">
+              <Properties><Property name="text" type="java.lang.String" value="Random x"/></Properties>
+              <AuxValues><AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/></AuxValues>
+            </Component>
+            <Component class="javax.swing.JButton" name="dsaCalculateButton">
+              <Properties><Property name="text" type="java.lang.String" value="Calculate"/></Properties>
+              <AuxValues><AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/></AuxValues>
+            </Component>
+            <Component class="javax.swing.JButton" name="dsaCopyButton">
+              <Properties><Property name="text" type="java.lang.String" value="Copy public values"/></Properties>
+              <AuxValues><AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/></AuxValues>
+            </Component>
+          </SubComponents>
+        </Container>
+      </SubComponents>
+    </Container>
   </NonVisualComponents>
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="3"/>
@@ -363,6 +448,61 @@
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
                   <GridBagConstraints gridX="5" gridY="2" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="6" insetsRight="0" anchor="17" weightX="0.0" weightY="0.0"/>
+                </Constraint>
+              </Constraints>
+            </Component>
+            <Component class="javax.swing.JCheckBox" name="signatureCheck">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="DSA Signature"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/>
+              </AuxValues>
+              <Constraints>
+                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                  <GridBagConstraints gridX="0" gridY="3" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="0" insetsRight="14" anchor="17" weightX="0.0" weightY="0.0"/>
+                </Constraint>
+              </Constraints>
+            </Component>
+            <Component class="javax.swing.JLabel" name="selectedUserDsaYLabel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="PUBLIC Y"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/>
+              </AuxValues>
+              <Constraints>
+                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                  <GridBagConstraints gridX="1" gridY="3" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="0" insetsRight="14" anchor="17" weightX="0.0" weightY="0.0"/>
+                </Constraint>
+              </Constraints>
+            </Component>
+            <Component class="javax.swing.JTextField" name="selectedUserDsaYField">
+              <Properties>
+                <Property name="columns" type="int" value="32"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/>
+              </AuxValues>
+              <Constraints>
+                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                  <GridBagConstraints gridX="2" gridY="3" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="0" insetsRight="14" anchor="17" weightX="1.0" weightY="0.0"/>
+                </Constraint>
+              </Constraints>
+            </Component>
+            <Component class="javax.swing.JButton" name="viewDsaButton">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="&lt;html&gt;&lt;u&gt;View&amp;nbsp;DSA&lt;/u&gt;&lt;/html&gt;"/>
+                <Property name="borderPainted" type="boolean" value="false"/>
+                <Property name="contentAreaFilled" type="boolean" value="false"/>
+                <Property name="focusPainted" type="boolean" value="false"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/>
+              </AuxValues>
+              <Constraints>
+                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                  <GridBagConstraints gridX="5" gridY="3" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="0" insetsRight="0" anchor="17" weightX="0.0" weightY="0.0"/>
                 </Constraint>
               </Constraints>
             </Component>

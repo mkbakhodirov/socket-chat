@@ -3,6 +3,7 @@ package com.example.socketchat.ui;
 import com.example.socketchat.dto.Message;
 import com.example.socketchat.encryption.CbcEncryption;
 import com.example.socketchat.encryption.DiffieHellmanEncryption;
+import com.example.socketchat.encryption.DsaSigning;
 import com.example.socketchat.model.ChatMessage;
 import com.example.socketchat.model.User;
 import com.example.socketchat.model.UserModel;
@@ -34,9 +35,14 @@ public class Controller {
     DiffieHellmanEncryption diffieHellmanEncryption;
     @Inject
     CbcEncryption cbcEncryption;
+    @Inject
+    DsaSigning dsaSigning;
     DiffieHellmanEncryption.KeyPair diffieHellmanIdentity;
+    DsaSigning.KeyPair dsaIdentity;
     private boolean diffieHellmanFormInitialized;
     private boolean diffieHellmanActionsInitialized;
+    private boolean dsaFormInitialized;
+    private boolean dsaActionsInitialized;
 
     private final MainFrame frame = new MainFrame();
     private final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
@@ -47,6 +53,7 @@ public class Controller {
         frame.hexKeyField.setText("");
 
         diffieHellmanIdentity = diffieHellmanEncryption.generateKeyPair();
+        dsaIdentity = dsaSigning.generateKeyPair();
 
         loadAddresses();
 
@@ -65,6 +72,8 @@ public class Controller {
         frame.diffieHellmanCheck.addActionListener(event -> selectDiffieHellman());
 
         frame.viewDiffieHellmanButton.addActionListener(event -> showDiffieHellmanForm());
+
+        frame.viewDsaButton.addActionListener(event -> showDsaForm());
 
         frame.inputField.addKeyListener(new KeyAdapter() {
             @Override
@@ -205,6 +214,83 @@ public class Controller {
         }
     }
 
+    private void showDsaForm() {
+        if (!dsaFormInitialized) {
+            frame.dsaPField.setText(dsaIdentity.p().toString());
+            frame.dsaQField.setText(dsaIdentity.q().toString());
+            frame.dsaGField.setText(dsaIdentity.g().toString());
+            frame.dsaXField.setText(dsaIdentity.x().toString());
+            frame.dsaYField.setText(dsaIdentity.y().toString());
+            dsaFormInitialized = true;
+        }
+
+        Runnable calculate = () -> {
+            try {
+                DsaSigning.KeyPair keyPair = dsaSigning.calculate(
+                        parsePositive(frame.dsaPField, "P"),
+                        parsePositive(frame.dsaQField, "Q"),
+                        parsePositive(frame.dsaGField, "G"),
+                        parsePositive(frame.dsaXField, "x")
+                );
+                frame.dsaYField.setText(keyPair.y().toString());
+            } catch (RuntimeException ex) {
+                JOptionPane.showMessageDialog(frame, ex.getMessage(), "Invalid DSA values", JOptionPane.ERROR_MESSAGE);
+            }
+        };
+
+        if (!dsaActionsInitialized) {
+            frame.dsaRandomButton.addActionListener(event -> {
+                try {
+                    BigInteger q = parsePositive(frame.dsaQField, "Q");
+                    frame.dsaXField.setText(dsaSigning.randomValue(q).toString());
+                    calculate.run();
+                } catch (RuntimeException ex) {
+                    JOptionPane.showMessageDialog(frame, ex.getMessage(), "Invalid DSA values", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+
+            frame.dsaCalculateButton.addActionListener(event -> calculate.run());
+
+            frame.dsaCopyButton.addActionListener(event -> {
+                calculate.run();
+                String publicValues = "P=" + frame.dsaPField.getText().trim()
+                        + ", Q=" + frame.dsaQField.getText().trim()
+                        + ", G=" + frame.dsaGField.getText().trim()
+                        + ", y=" + frame.dsaYField.getText().trim();
+                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(publicValues), null);
+            });
+            dsaActionsInitialized = true;
+        }
+
+        int result = JOptionPane.showConfirmDialog(
+                frame,
+                frame.dsaContentPanel,
+                "DSA Signature",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+        if (result != JOptionPane.OK_OPTION) {
+            return;
+        }
+
+        try {
+            dsaIdentity = dsaSigning.calculate(
+                    parsePositive(frame.dsaPField, "P"),
+                    parsePositive(frame.dsaQField, "Q"),
+                    parsePositive(frame.dsaGField, "G"),
+                    parsePositive(frame.dsaXField, "x")
+            );
+            if (!frame.selectedUserDsaYField.getText().isBlank()) {
+                dsaSigning.publicKey(
+                        dsaIdentity.p(), dsaIdentity.q(), dsaIdentity.g(),
+                        parsePositive(frame.selectedUserDsaYField, "Selected user's y")
+                );
+            }
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(frame, ex.getMessage(), "Could not apply DSA values", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void loadAddresses() {
         scheduler.scheduleAtFixedRate(() -> {
             // Безопасно переносим выполнение в поток обработки событий Swing (EDT)
@@ -297,15 +383,26 @@ public class Controller {
 
         try {
             InetSocketAddress isa = new InetSocketAddress(user.getAddress(), Integer.parseInt(frame.portField.getText().trim()));
-            if (!frame.encryptionCheck.isSelected()) {
-                udpService.sendPlain(text, isa);
-            } else if (frame.diffieHellmanCheck.isSelected()) {
-                udpService.sendPlain(text, isa);
+            if (frame.signatureCheck.isSelected()) {
+                if (frame.encryptionCheck.isSelected()) {
+                    byte[] message = cbcEncryption.encrypt(text, frame.hexKeyField.getText().trim());
+                    byte[] payload = dsaSigning.encodeSigned(message, dsaSigning.sign(message, dsaIdentity));
+                    udpService.send(UdpBroadcastService.SIGNED_ENCRYPTED_MESSAGE, payload, isa);
+                } else {
+                    byte[] message = text.getBytes(StandardCharsets.UTF_8);
+                    byte[] payload = dsaSigning.encodeSigned(message, dsaSigning.sign(message, dsaIdentity));
+                    udpService.send(UdpBroadcastService.SIGNED_PLAIN_MESSAGE, payload, isa);
+                }
+            } else if (frame.encryptionCheck.isSelected()) {
+                byte[] payload = cbcEncryption.encrypt(text, frame.hexKeyField.getText().trim());
+                udpService.send(UdpBroadcastService.ENCRYPTED_MESSAGE, payload, isa);
             } else {
-                udpService.sendEncrypted(text, frame.hexKeyField.getText().trim(), isa);
+                byte[] payload = text.getBytes(StandardCharsets.UTF_8);
+                udpService.send(UdpBroadcastService.PLAIN_MESSAGE, payload, isa);
             }
             frame.inputField.setText("");
         } catch (Exception ex) {
+            ex.printStackTrace();
             JOptionPane.showMessageDialog(frame, ex.getMessage(), "Could not send UDP message", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -330,19 +427,9 @@ public class Controller {
             }
 
             case UdpBroadcastService.PLAIN_MESSAGE: {
-                ChatMessage cm = new ChatMessage(
-                        LocalTime.now(),
-                        "<-",
-                        message.getAddress(),
-                        new String(message.getPayload(), StandardCharsets.UTF_8)
-                );
-                frame.messages.append("%s  %s  %s  %s%n".formatted(
-                        timeFormat.format(cm.time()),
-                        cm.direction(),
-                        cm.sender(),
-                        cm.text()
-                ));
-                frame.messages.setCaretPosition(frame.messages.getDocument().getLength());
+                String text = new String(message.getPayload(), StandardCharsets.UTF_8);
+                ChatMessage cm = new ChatMessage(LocalTime.now(), "<-", message.getAddress(), text);
+                appendMessage(cm);
                 break;
             }
 
@@ -359,15 +446,54 @@ public class Controller {
                 }
 
                 ChatMessage cm = new ChatMessage(LocalTime.now(), "<-", message.getAddress(), text);
-                frame.messages.append("%s  %s  %s  %s%n".formatted(
-                        timeFormat.format(cm.time()),
-                        cm.direction(),
-                        cm.sender(),
-                        cm.text()
-                ));
-                frame.messages.setCaretPosition(frame.messages.getDocument().getLength());
+                appendMessage(cm);
                 break;
             }
+
+            case UdpBroadcastService.SIGNED_PLAIN_MESSAGE: {
+                appendSignedMessage(message, false);
+                break;
+            }
+
+            case UdpBroadcastService.SIGNED_ENCRYPTED_MESSAGE: {
+                appendSignedMessage(message, true);
+                break;
+            }
+        }
+    }
+
+    private void appendMessage(ChatMessage cm) {
+        frame.messages.append("%s  %s  %s  %s%n".formatted(
+                timeFormat.format(cm.time()),
+                cm.direction(),
+                cm.sender(),
+                cm.text()
+        ));
+        frame.messages.setCaretPosition(frame.messages.getDocument().getLength());
+    }
+
+    private void appendSignedMessage(Message message, boolean encrypted) {
+        try {
+            if (frame.selectedUserDsaYField.getText().isBlank()) {
+                throw new IllegalArgumentException("Missing selected user's DSA public value");
+            }
+            DsaSigning.PublicKey publicKey = dsaSigning.publicKey(
+                    dsaIdentity.p(), dsaIdentity.q(), dsaIdentity.g(),
+                    parsePositive(frame.selectedUserDsaYField, "Selected user's y")
+            );
+            DsaSigning.SignedMessage signedMessage = dsaSigning.decodeSigned(message.getPayload());
+            if (!dsaSigning.verify(signedMessage.message(), signedMessage.signature(), publicKey)) {
+                throw new IllegalArgumentException("Invalid DSA signature");
+            }
+            String text = encrypted
+                    ? cbcEncryption.decrypt(signedMessage.message(), frame.hexKeyField.getText().trim())
+                    : new String(signedMessage.message(), StandardCharsets.UTF_8);
+
+            ChatMessage cm = new ChatMessage(LocalTime.now(), "<-", message.getAddress(), text);
+            appendMessage(cm);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            frame.messages.append("Error verifying signed message: " + ex.getMessage() + "\n");
         }
     }
 }
