@@ -133,52 +133,6 @@ public class Controller {
             diffieHellmanFormInitialized = true;
         }
 
-//        Runnable calculate = () -> {
-//            try {
-//                DiffieHellmanEncryption.KeyPair keyPair = diffieHellmanEncryption.calculate(
-//                        parsePositive(frame.diffieHellmanGField, "G"),
-//                        parsePositive(frame.diffieHellmanPField, "P"),
-//                        parsePositive(frame.diffieHellmanXField, "x")
-//                );
-//                frame.diffieHellmanYField.setText(keyPair.y().toString());
-//                if (!frame.selectedUserDiffieHellmanYField.getText().isBlank()) {
-//                    DiffieHellmanEncryption.PublicKey publicKey = new DiffieHellmanEncryption.PublicKey(
-//                            keyPair.g(), keyPair.p(), parsePositive(frame.selectedUserDiffieHellmanYField, "Selected user's y")
-//                    );
-//                    frame.diffieHellmanKField.setText(diffieHellmanEncryption.sharedSecret(
-//                            publicKey, keyPair.x(), keyPair.p(), keyPair.g()
-//                    ).toString());
-//                } else {
-//                    frame.diffieHellmanKField.setText("");
-//                }
-//            } catch (RuntimeException ex) {
-//                JOptionPane.showMessageDialog(frame, ex.getMessage(), "Invalid Diffie-Hellman values", JOptionPane.ERROR_MESSAGE);
-//            }
-//        };
-//
-//        if (!diffieHellmanActionsInitialized) {
-//            frame.diffieHellmanRandomButton.addActionListener(event -> {
-//                try {
-//                    BigInteger p = parsePositive(frame.diffieHellmanPField, "P");
-//                    frame.diffieHellmanXField.setText(diffieHellmanEncryption.randomExponent(p).toString());
-//                    calculate.run();
-//                } catch (RuntimeException ex) {
-//                    JOptionPane.showMessageDialog(frame, ex.getMessage(), "Invalid Diffie-Hellman values", JOptionPane.ERROR_MESSAGE);
-//                }
-//            });
-//
-//            frame.diffieHellmanCalculateButton.addActionListener(event -> calculate.run());
-//
-//            frame.diffieHellmanCopyButton.addActionListener(event -> {
-//                calculate.run();
-//                String publicValues = "G=" + frame.diffieHellmanGField.getText().trim()
-//                        + ", P=" + frame.diffieHellmanPField.getText().trim()
-//                        + ", y=" + frame.diffieHellmanYField.getText().trim();
-//                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(publicValues), null);
-//            });
-//            diffieHellmanActionsInitialized = true;
-//        }
-
         int result = JOptionPane.showConfirmDialog(
                 frame,
                 frame.diffieHellmanContentPanel,
@@ -190,26 +144,7 @@ public class Controller {
             return;
         }
 
-        try {
-            diffieHellmanIdentity = diffieHellmanEncryption.calculate(
-                    parsePositive(frame.diffieHellmanGField, "G"),
-                    parsePositive(frame.diffieHellmanPField, "P"),
-                    parsePositive(frame.diffieHellmanXField, "x")
-            );
-            if (!frame.selectedUserDiffieHellmanYField.getText().isBlank()) {
-                DiffieHellmanEncryption.PublicKey publicKey = new DiffieHellmanEncryption.PublicKey(
-                        diffieHellmanIdentity.g(), diffieHellmanIdentity.p(),
-                        parsePositive(frame.selectedUserDiffieHellmanYField, "Selected user's y")
-                );
-                frame.hexKeyField.setText(diffieHellmanEncryption.toSecretKey(
-                        publicKey, diffieHellmanIdentity.x(), diffieHellmanIdentity.p(), diffieHellmanIdentity.g()
-                ));
-            } else {
-                frame.hexKeyField.setText("");
-            }
-        } catch (RuntimeException ex) {
-            JOptionPane.showMessageDialog(frame, ex.getMessage(), "Could not apply Diffie-Hellman values", JOptionPane.ERROR_MESSAGE);
-        }
+        calculateDiffieHellman();
     }
 
     private void randomDiffieHellman() {
@@ -224,21 +159,24 @@ public class Controller {
 
     private void calculateDiffieHellman() {
         try {
-            DiffieHellmanEncryption.KeyPair keyPair = diffieHellmanEncryption.calculate(
+            diffieHellmanIdentity = diffieHellmanEncryption.calculate(
                     parsePositive(frame.diffieHellmanGField, "G"),
                     parsePositive(frame.diffieHellmanPField, "P"),
                     parsePositive(frame.diffieHellmanXField, "x")
             );
-            frame.diffieHellmanYField.setText(keyPair.y().toString());
+            frame.diffieHellmanYField.setText(diffieHellmanIdentity.y().toString());
             if (!frame.selectedUserDiffieHellmanYField.getText().isBlank()) {
                 DiffieHellmanEncryption.PublicKey publicKey = new DiffieHellmanEncryption.PublicKey(
-                        keyPair.g(), keyPair.p(), parsePositive(frame.selectedUserDiffieHellmanYField, "Selected user's y")
+                        diffieHellmanIdentity.g(), diffieHellmanIdentity.p(),
+                        parsePositive(frame.selectedUserDiffieHellmanYField, "Selected user's y")
                 );
-                frame.diffieHellmanKField.setText(diffieHellmanEncryption.sharedSecret(
-                        publicKey, keyPair.x(), keyPair.p(), keyPair.g()
-                ).toString());
+                frame.diffieHellmanKField.setText(diffieHellmanEncryption.toSecretKey(
+                        publicKey, diffieHellmanIdentity.x(), diffieHellmanIdentity.p(), diffieHellmanIdentity.g()
+                ));
+                frame.hexKeyField.setText(frame.diffieHellmanKField.getText());
             } else {
                 frame.diffieHellmanKField.setText("");
+                frame.hexKeyField.setText("");
             }
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(frame, ex.getMessage(), "Invalid Diffie-Hellman values", JOptionPane.ERROR_MESSAGE);
