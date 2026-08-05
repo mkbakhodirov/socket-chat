@@ -337,9 +337,7 @@ public class Controller {
                         @Override
                         public void accept(Throwable t) {
                             t.printStackTrace();
-                            SwingUtilities.invokeLater(() -> {
-                                frame.messages.append("Error: " + t.getMessage() + "\n");
-                            });
+                            SwingUtilities.invokeLater(() -> frame.messages.append("Error: " + t.getMessage() + "\n"));
                         }
                     }
             );
@@ -439,9 +437,7 @@ public class Controller {
                     text = cbcEncryption.decrypt(message.getPayload(), frame.hexKeyField.getText().trim());
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    SwingUtilities.invokeLater(() -> {
-                        frame.messages.append("Error decrypting message: " + ex.getMessage() + "\n");
-                    });
+                    SwingUtilities.invokeLater(() -> frame.messages.append("Error decrypting message: " + ex.getMessage() + "\n"));
                     return;
                 }
 

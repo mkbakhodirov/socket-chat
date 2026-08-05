@@ -127,6 +127,7 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
         data[0] = type;
         data[1] = (byte) payload.length;
         System.arraycopy(payload, 0, data, 2, payload.length);
+        System.out.println("Sent data: " + Arrays.toString(data));
 
         DatagramPacket dp = new DatagramPacket(data, data.length, sa);
         try {

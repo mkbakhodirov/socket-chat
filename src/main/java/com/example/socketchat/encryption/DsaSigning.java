@@ -27,7 +27,8 @@ public final class DsaSigning {
     public KeyPair calculate(BigInteger p, BigInteger q, BigInteger g, BigInteger x) {
         validateParameters(p, q, g);
         validatePrivateValue(x, q);
-        return new KeyPair(p, q, g, x, g.modPow(x, p));
+        BigInteger y = g.modPow(x, p);
+        return new KeyPair(p, q, g, x, y);
     }
 
     public BigInteger randomValue(BigInteger q) {
@@ -76,22 +77,33 @@ public final class DsaSigning {
     }
 
     public byte[] encodeSigned(byte[] message, Signature signature) {
+        if (message == null || message.length > 255) {
+            throw new IllegalArgumentException("DSA message must not exceed 255 bytes");
+        }
         byte[] signatureData = encodeValues(signature.r(), signature.s());
-        byte[] data = new byte[signatureData.length + message.length];
-        System.arraycopy(signatureData, 0, data, 0, signatureData.length);
-        System.arraycopy(message, 0, data, signatureData.length, message.length);
+        byte[] data = new byte[1 + message.length + signatureData.length];
+        data[0] = (byte) message.length;
+        System.arraycopy(message, 0, data, 1, message.length);
+        System.arraycopy(signatureData, 0, data, 1 + message.length, signatureData.length);
         return data;
     }
 
     public SignedMessage decodeSigned(byte[] data) {
         try {
-            ByteArrayInputStream input = new ByteArrayInputStream(data);
-            DataInputStream stream = new DataInputStream(input);
+            DataInputStream stream = new DataInputStream(new ByteArrayInputStream(data));
+            int messageLength = stream.readUnsignedByte();
+            if (messageLength > stream.available()) {
+                throw new IllegalArgumentException("Invalid DSA message");
+            }
+            byte[] message = stream.readNBytes(messageLength);
             BigInteger r = readValue(stream);
             BigInteger s = readValue(stream);
-            return new SignedMessage(input.readAllBytes(), new Signature(r, s));
+            if (stream.available() != 0) {
+                throw new IllegalArgumentException("Invalid DSA signed message");
+            }
+            return new SignedMessage(message, new Signature(r, s));
         } catch (Exception ex) {
-            throw new IllegalArgumentException("Invalid DSA signed message");
+            throw new IllegalArgumentException(ex);
         }
     }
 
