@@ -28,6 +28,11 @@ public final class DsaSigning {
         validateParameters(p, q, g);
         validatePrivateValue(x, q);
         BigInteger y = g.modPow(x, p);
+        System.out.println("p: " + p.bitLength());
+        System.out.println("q: " + q.bitLength());
+        System.out.println("g: " + g.bitLength());
+        System.out.println("x: " + x.bitLength());
+        System.out.println("y: " + y.bitLength());
         return new KeyPair(p, q, g, x, y);
     }
 
