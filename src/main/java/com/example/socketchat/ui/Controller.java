@@ -39,10 +39,6 @@ public class Controller {
     DsaSigning dsaSigning;
     DiffieHellmanEncryption.KeyPair diffieHellmanIdentity;
     DsaSigning.KeyPair dsaIdentity;
-    private boolean diffieHellmanFormInitialized;
-    private boolean diffieHellmanActionsInitialized;
-    private boolean dsaFormInitialized;
-    private boolean dsaActionsInitialized;
 
     private final MainFrame frame = new MainFrame();
     private final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
@@ -80,6 +76,12 @@ public class Controller {
         frame.diffieHellmanCopyButton.addActionListener(event -> copyDiffieHellman());
 
         frame.viewDsaButton.addActionListener(event -> showDsaForm());
+
+        frame.dsaRandomButton.addActionListener(event -> randomDsa());
+
+        frame.dsaCalculateButton.addActionListener(event -> calculateDsa());
+
+        frame.dsaCopyButton.addActionListener(event -> copyDsa());
 
         frame.inputField.addKeyListener(new KeyAdapter() {
             @Override
@@ -125,13 +127,10 @@ public class Controller {
     }
 
     private void showDiffieHellmanForm() {
-        if (!diffieHellmanFormInitialized) {
-            frame.diffieHellmanGField.setText(diffieHellmanIdentity.g().toString());
-            frame.diffieHellmanPField.setText(diffieHellmanIdentity.p().toString());
-            frame.diffieHellmanXField.setText(diffieHellmanIdentity.x().toString());
-            frame.diffieHellmanYField.setText(diffieHellmanIdentity.y().toString());
-            diffieHellmanFormInitialized = true;
-        }
+        frame.diffieHellmanGField.setText(diffieHellmanIdentity.g().toString());
+        frame.diffieHellmanPField.setText(diffieHellmanIdentity.p().toString());
+        frame.diffieHellmanXField.setText(diffieHellmanIdentity.x().toString());
+        frame.diffieHellmanYField.setText(diffieHellmanIdentity.y().toString());
 
         int result = JOptionPane.showConfirmDialog(
                 frame,
@@ -199,52 +198,11 @@ public class Controller {
     }
 
     private void showDsaForm() {
-        if (!dsaFormInitialized) {
-            frame.dsaPField.setText(dsaIdentity.p().toString());
-            frame.dsaQField.setText(dsaIdentity.q().toString());
-            frame.dsaGField.setText(dsaIdentity.g().toString());
-            frame.dsaXField.setText(dsaIdentity.x().toString());
-            frame.dsaYField.setText(dsaIdentity.y().toString());
-            dsaFormInitialized = true;
-        }
-
-        Runnable calculate = () -> {
-            try {
-                DsaSigning.KeyPair keyPair = dsaSigning.calculate(
-                        parsePositive(frame.dsaPField, "P"),
-                        parsePositive(frame.dsaQField, "Q"),
-                        parsePositive(frame.dsaGField, "G"),
-                        parsePositive(frame.dsaXField, "x")
-                );
-                frame.dsaYField.setText(keyPair.y().toString());
-            } catch (RuntimeException ex) {
-                JOptionPane.showMessageDialog(frame, ex.getMessage(), "Invalid DSA values", JOptionPane.ERROR_MESSAGE);
-            }
-        };
-
-        if (!dsaActionsInitialized) {
-            frame.dsaRandomButton.addActionListener(event -> {
-                try {
-                    BigInteger q = parsePositive(frame.dsaQField, "Q");
-                    frame.dsaXField.setText(dsaSigning.randomValue(q).toString());
-                    calculate.run();
-                } catch (RuntimeException ex) {
-                    JOptionPane.showMessageDialog(frame, ex.getMessage(), "Invalid DSA values", JOptionPane.ERROR_MESSAGE);
-                }
-            });
-
-            frame.dsaCalculateButton.addActionListener(event -> calculate.run());
-
-            frame.dsaCopyButton.addActionListener(event -> {
-                calculate.run();
-                String publicValues = "P=" + frame.dsaPField.getText().trim()
-                        + ", Q=" + frame.dsaQField.getText().trim()
-                        + ", G=" + frame.dsaGField.getText().trim()
-                        + ", y=" + frame.dsaYField.getText().trim();
-                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(publicValues), null);
-            });
-            dsaActionsInitialized = true;
-        }
+        frame.dsaPField.setText(dsaIdentity.p().toString());
+        frame.dsaQField.setText(dsaIdentity.q().toString());
+        frame.dsaGField.setText(dsaIdentity.g().toString());
+        frame.dsaXField.setText(dsaIdentity.x().toString());
+        frame.dsaYField.setText(dsaIdentity.y().toString());
 
         int result = JOptionPane.showConfirmDialog(
                 frame,
@@ -257,6 +215,20 @@ public class Controller {
             return;
         }
 
+        calculateDsa();
+    }
+
+    private void randomDsa() {
+        try {
+            BigInteger q = parsePositive(frame.dsaQField, "Q");
+            frame.dsaXField.setText(dsaSigning.randomValue(q).toString());
+            calculateDsa();
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(frame, ex.getMessage(), "Invalid DSA values", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void calculateDsa() {
         try {
             dsaIdentity = dsaSigning.calculate(
                     parsePositive(frame.dsaPField, "P"),
@@ -264,6 +236,7 @@ public class Controller {
                     parsePositive(frame.dsaGField, "G"),
                     parsePositive(frame.dsaXField, "x")
             );
+            frame.dsaYField.setText(dsaIdentity.y().toString());
             if (!frame.selectedUserDsaYField.getText().isBlank()) {
                 dsaSigning.publicKey(
                         dsaIdentity.p(), dsaIdentity.q(), dsaIdentity.g(),
@@ -271,8 +244,16 @@ public class Controller {
                 );
             }
         } catch (RuntimeException ex) {
-            JOptionPane.showMessageDialog(frame, ex.getMessage(), "Could not apply DSA values", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(frame, ex.getMessage(), "Invalid DSA values", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void copyDsa() {
+        String publicValues = "P=" + frame.dsaPField.getText().trim()
+                + ", Q=" + frame.dsaQField.getText().trim()
+                + ", G=" + frame.dsaGField.getText().trim()
+                + ", y=" + frame.dsaYField.getText().trim();
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(publicValues), null);
     }
 
     private void loadAddresses() {
