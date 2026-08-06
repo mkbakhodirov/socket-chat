@@ -161,31 +161,38 @@
               <Properties><Property name="text" type="java.lang.String" value="P"/></Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="dsaPField">
+              <Properties><Property name="columns" type="int" value="32"/></Properties>
               <AuxValues><AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/></AuxValues>
             </Component>
             <Component class="javax.swing.JLabel" name="dsaQLabel">
               <Properties><Property name="text" type="java.lang.String" value="Q"/></Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="dsaQField">
+              <Properties><Property name="columns" type="int" value="32"/></Properties>
               <AuxValues><AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/></AuxValues>
             </Component>
             <Component class="javax.swing.JLabel" name="dsaGLabel">
               <Properties><Property name="text" type="java.lang.String" value="G"/></Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="dsaGField">
+              <Properties><Property name="columns" type="int" value="32"/></Properties>
               <AuxValues><AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/></AuxValues>
             </Component>
             <Component class="javax.swing.JLabel" name="dsaXLabel">
               <Properties><Property name="text" type="java.lang.String" value="x (private)"/></Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="dsaXField">
+              <Properties><Property name="columns" type="int" value="32"/></Properties>
               <AuxValues><AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/></AuxValues>
             </Component>
             <Component class="javax.swing.JLabel" name="dsaYLabel">
               <Properties><Property name="text" type="java.lang.String" value="y = G^x mod P"/></Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="dsaYField">
-              <Properties><Property name="editable" type="boolean" value="false"/></Properties>
+              <Properties>
+                <Property name="columns" type="int" value="32"/>
+                <Property name="editable" type="boolean" value="false"/>
+              </Properties>
               <AuxValues><AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/></AuxValues>
             </Component>
           </SubComponents>

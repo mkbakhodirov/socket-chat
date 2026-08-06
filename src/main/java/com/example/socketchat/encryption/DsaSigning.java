@@ -16,9 +16,9 @@ public final class DsaSigning {
     private static final BigInteger ONE = BigInteger.ONE;
     private static final BigInteger TWO = BigInteger.TWO;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-    public static final BigInteger DEFAULT_P = new BigInteger("57896044618658097711785492504343953971211982399463220733430865577518200520441");
-    public static final BigInteger DEFAULT_Q = new BigInteger("170141183460469231731687303715884105727");
-    public static final BigInteger DEFAULT_G = new BigInteger("17921693093724708385849493981084370599727531480288526891237582100324776016502");
+    public static final BigInteger DEFAULT_Q = TWO.pow(256).subtract(BigInteger.valueOf(189));
+    public static final BigInteger DEFAULT_P = TWO.pow(2048).subtract(BigInteger.valueOf(189).pow(2048 / 256).subtract(ONE)).subtract(DEFAULT_Q.multiply(BigInteger.valueOf(387)));
+    public static final BigInteger DEFAULT_G = TWO.modPow(DEFAULT_P.subtract(ONE).divide(DEFAULT_Q), DEFAULT_P);
 
     public KeyPair generateKeyPair() {
         return calculate(DEFAULT_P, DEFAULT_Q, DEFAULT_G, randomValue(DEFAULT_Q));
@@ -82,22 +82,30 @@ public final class DsaSigning {
     }
 
     public byte[] encodeSigned(byte[] message, Signature signature) {
-        if (message == null || message.length > 255) {
-            throw new IllegalArgumentException("DSA message must not exceed 255 bytes");
+        if (message == null) {
+            throw new IllegalArgumentException("DSA message must not be null");
         }
-        byte[] signatureData = encodeValues(signature.r(), signature.s());
-        byte[] data = new byte[1 + message.length + signatureData.length];
-        data[0] = (byte) message.length;
-        System.arraycopy(message, 0, data, 1, message.length);
-        System.arraycopy(signatureData, 0, data, 1 + message.length, signatureData.length);
-        return data;
+        try {
+            byte[] signatureData = encodeValues(signature.r(), signature.s());
+            ByteArrayOutputStream output = new ByteArrayOutputStream(
+                    Integer.BYTES + message.length + signatureData.length
+            );
+            try (DataOutputStream stream = new DataOutputStream(output)) {
+                stream.writeInt(message.length);
+                stream.write(message);
+                stream.write(signatureData);
+            }
+            return output.toByteArray();
+        } catch (Exception ex) {
+            throw new IllegalArgumentException(ex);
+        }
     }
 
     public SignedMessage decodeSigned(byte[] data) {
         try {
             DataInputStream stream = new DataInputStream(new ByteArrayInputStream(data));
-            int messageLength = stream.readUnsignedByte();
-            if (messageLength > stream.available()) {
+            int messageLength = stream.readInt();
+            if (messageLength < 0 || messageLength > stream.available()) {
                 throw new IllegalArgumentException("Invalid DSA message");
             }
             byte[] message = stream.readNBytes(messageLength);
@@ -126,7 +134,7 @@ public final class DsaSigning {
             DataOutputStream stream = new DataOutputStream(output);
             for (BigInteger value : values) {
                 byte[] bytes = value.toByteArray();
-                stream.writeByte(bytes.length);
+                stream.writeInt(bytes.length);
                 stream.write(bytes);
             }
             return output.toByteArray();
@@ -136,8 +144,8 @@ public final class DsaSigning {
     }
 
     private BigInteger readValue(DataInputStream stream) throws Exception {
-        int length = stream.readUnsignedByte();
-        if (length == 0 || length > stream.available()) {
+        int length = stream.readInt();
+        if (length <= 0 || length > stream.available()) {
             throw new IllegalArgumentException("Invalid DSA value");
         }
         return new BigInteger(stream.readNBytes(length));

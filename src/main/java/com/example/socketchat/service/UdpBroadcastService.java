@@ -3,6 +3,10 @@ package com.example.socketchat.service;
 import com.example.socketchat.dto.Message;
 
 import javax.swing.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.*;
 import java.util.Arrays;
 import java.util.List;
@@ -12,6 +16,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public final class UdpBroadcastService extends SwingWorker<Void, Object> {
+
+    private static final int MAX_DATAGRAM_SIZE = 65_507;
+    private static final int FRAME_HEADER_SIZE = Byte.BYTES + Integer.BYTES;
+    private static final int MAX_PAYLOAD_SIZE = MAX_DATAGRAM_SIZE - FRAME_HEADER_SIZE;
 
     private SocketAddress broadcastAddr;
     private Consumer<Message> listener;
@@ -45,10 +53,11 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
 
     @Override
     protected Void doInBackground() throws Exception {
-        byte[] buffer = new byte[1500];
+        byte[] buffer = new byte[MAX_DATAGRAM_SIZE];
         DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
         while (running) {
             try {
+                dp.setLength(buffer.length);
                 socket.receive(dp);
 
                 String addr = dp.getAddress().getHostAddress();
@@ -57,20 +66,22 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
 //                }
                 int ofs = dp.getOffset();
                 int len = dp.getLength();
-                if (len < 1) {
+                if (len < FRAME_HEADER_SIZE) {
                     continue;
                 }
                 byte[] data = new byte[len];
                 System.arraycopy(dp.getData(), ofs, data, 0, len);
                 System.out.println("Received data from " + addr + ": " + Arrays.toString(data));
 
-                byte type = data[0];
-                int size = 0;
-                byte[] payload = new byte[size];
-                if (data.length > 1) {
-                    size = Byte.toUnsignedInt(data[1]);
-                    payload = new byte[size];
-                    System.arraycopy(data, 2, payload, 0, size);
+                byte type;
+                byte[] payload;
+                try (DataInputStream stream = new DataInputStream(new ByteArrayInputStream(data))) {
+                    type = stream.readByte();
+                    int size = stream.readInt();
+                    if (size < 0 || size != stream.available()) {
+                        throw new IllegalArgumentException("Invalid UDP payload length: " + size);
+                    }
+                    payload = stream.readNBytes(size);
                 }
                 publish(new Message(addr, type, payload));
             } catch (Exception ex) {
@@ -119,18 +130,27 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
             error.accept(new IllegalStateException("UDP is OFFLINE!!!"));
             return;
         }
-        if (payload.length > 255) {
-            error.accept(new IllegalArgumentException("UDP payload must not exceed 255 bytes"));
+        if (payload == null) {
+            error.accept(new IllegalArgumentException("UDP payload must not be null"));
             return;
         }
-        byte[] data = new byte[2 + payload.length];
-        data[0] = type;
-        data[1] = (byte) payload.length;
-        System.arraycopy(payload, 0, data, 2, payload.length);
-        System.out.println("Sent data: " + Arrays.toString(data));
-
-        DatagramPacket dp = new DatagramPacket(data, data.length, sa);
+        if (payload.length > MAX_PAYLOAD_SIZE) {
+            error.accept(new IllegalArgumentException(
+                    "UDP payload must not exceed " + MAX_PAYLOAD_SIZE + " bytes"
+            ));
+            return;
+        }
         try {
+            ByteArrayOutputStream output = new ByteArrayOutputStream(FRAME_HEADER_SIZE + payload.length);
+            try (DataOutputStream stream = new DataOutputStream(output)) {
+                stream.writeByte(type);
+                stream.writeInt(payload.length);
+                stream.write(payload);
+            }
+            byte[] data = output.toByteArray();
+            System.out.println("Sent data: " + Arrays.toString(data));
+
+            DatagramPacket dp = new DatagramPacket(data, data.length, sa);
             socket.send(dp);
         } catch (Exception ex) {
             publish(ex);

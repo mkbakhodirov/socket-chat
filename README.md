@@ -25,7 +25,7 @@ The application supports these packet types:
 - AES-GCM encrypted message
 - Diffie-Hellman-derived AES-GCM encrypted message
 
-UDP message payloads are limited to 255 bytes by the application protocol. Because AES-GCM also carries an IV and authentication tag, encrypted plaintext must be shorter (at most about 227 UTF-8 bytes).
+UDP message payload lengths are encoded as 32-bit integers. A single application datagram can carry up to 65,502 payload bytes, although large UDP datagrams may be fragmented or dropped by the network.
 
 ## Requirements
 

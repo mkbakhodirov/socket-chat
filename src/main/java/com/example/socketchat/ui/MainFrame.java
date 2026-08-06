@@ -154,23 +154,32 @@ public class MainFrame extends javax.swing.JFrame {
 
         dsaPLabel.setText("P");
         dsaFieldsPanel.add(dsaPLabel);
+
+        dsaPField.setColumns(32);
         dsaFieldsPanel.add(dsaPField);
 
         dsaQLabel.setText("Q");
         dsaFieldsPanel.add(dsaQLabel);
+
+        dsaQField.setColumns(32);
         dsaFieldsPanel.add(dsaQField);
 
         dsaGLabel.setText("G");
         dsaFieldsPanel.add(dsaGLabel);
+
+        dsaGField.setColumns(32);
         dsaFieldsPanel.add(dsaGField);
 
         dsaXLabel.setText("x (private)");
         dsaFieldsPanel.add(dsaXLabel);
+
+        dsaXField.setColumns(32);
         dsaFieldsPanel.add(dsaXField);
 
         dsaYLabel.setText("y = G^x mod P");
         dsaFieldsPanel.add(dsaYLabel);
 
+        dsaYField.setColumns(32);
         dsaYField.setEditable(false);
         dsaFieldsPanel.add(dsaYField);
 
