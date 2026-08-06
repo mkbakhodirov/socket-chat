@@ -75,7 +75,8 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
 
                 byte type;
                 byte[] payload;
-                try (DataInputStream stream = new DataInputStream(new ByteArrayInputStream(data))) {
+                try (ByteArrayInputStream input = new ByteArrayInputStream(data);
+                     DataInputStream stream = new DataInputStream(input)) {
                     type = stream.readByte();
                     int size = stream.readInt();
                     if (size < 0 || size != stream.available()) {
@@ -141,13 +142,14 @@ public final class UdpBroadcastService extends SwingWorker<Void, Object> {
             return;
         }
         try {
-            ByteArrayOutputStream output = new ByteArrayOutputStream(FRAME_HEADER_SIZE + payload.length);
-            try (DataOutputStream stream = new DataOutputStream(output)) {
+            byte[] data;
+            try (ByteArrayOutputStream output = new ByteArrayOutputStream(FRAME_HEADER_SIZE + payload.length);
+                 DataOutputStream stream = new DataOutputStream(output)) {
                 stream.writeByte(type);
                 stream.writeInt(payload.length);
                 stream.write(payload);
+                data = output.toByteArray();
             }
-            byte[] data = output.toByteArray();
             System.out.println("Sent data: " + Arrays.toString(data));
 
             DatagramPacket dp = new DatagramPacket(data, data.length, sa);
