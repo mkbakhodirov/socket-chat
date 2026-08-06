@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 public final class UdpBroadcastService extends SwingWorker<Void, Object> {
 
     private static final int MAX_DATAGRAM_SIZE = 65_507;
-    private static final int FRAME_HEADER_SIZE = Byte.BYTES + Integer.BYTES;
+    private static final int FRAME_HEADER_SIZE = 5; // type (byte) + size (int) = 5
     private static final int MAX_PAYLOAD_SIZE = MAX_DATAGRAM_SIZE - FRAME_HEADER_SIZE;
 
     private SocketAddress broadcastAddr;
